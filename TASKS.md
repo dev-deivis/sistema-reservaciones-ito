@@ -97,6 +97,18 @@ backend/src/routes/disponibilidad.js
 docs/disponibilidad.md
 ```
 
+### Roles y permisos
+
+| Endpoint | Middleware | Acceso |
+|----------|-----------|--------|
+| `GET /api/disponibilidad/:espacioId` | `auth` | Cualquier usuario autenticado |
+| `POST /api/disponibilidad/verificar` | `auth` | Cualquier usuario autenticado |
+
+Importar así en `routes/disponibilidad.js`:
+```js
+const { auth } = require('../middleware/auth');
+```
+
 **Ejemplos de respuesta esperada:**
 
 `POST /api/disponibilidad/verificar` — espacio libre:
@@ -147,6 +159,22 @@ backend/src/routes/espacios.js
 docs/espacios.md
 ```
 
+### Roles y permisos
+
+| Endpoint | Middleware | Acceso |
+|----------|-----------|--------|
+| `GET /api/espacios` | `auth` | Cualquier usuario autenticado |
+| `GET /api/espacios/:id` | `auth` | Cualquier usuario autenticado |
+| `GET /api/espacios/:id/recursos` | `auth` | Cualquier usuario autenticado |
+| `POST /api/espacios` | `authAdmin` | Solo administradores |
+| `PUT /api/espacios/:id` | `authAdmin` | Solo administradores |
+| `DELETE /api/espacios/:id` | `authAdmin` | Solo administradores |
+
+Importar así en `routes/espacios.js`:
+```js
+const { auth, authAdmin } = require('../middleware/auth');
+```
+
 ---
 
 ## Integrante 3 — Alex
@@ -177,6 +205,24 @@ backend/src/routes/reservaciones.js
 **Archivos a crear:**
 ```
 docs/reservaciones.md
+```
+
+### Roles y permisos
+
+| Endpoint | Middleware | Acceso |
+|----------|-----------|--------|
+| `GET /api/reservaciones` | `authAdmin` | Solo administradores (ven todas) |
+| `GET /api/reservaciones/mis-reservaciones` | `auth` | El usuario ve solo las suyas |
+| `GET /api/reservaciones/:id` | `auth` | Solo el dueño o admin (validar en controller) |
+| `POST /api/reservaciones` | `auth` | Cualquier usuario autenticado |
+| `PATCH /api/reservaciones/:id/cancelar` | `auth` | Solo el dueño o admin (validar en controller) |
+| `PUT /api/reservaciones/:id` | `auth` | Solo el dueño o admin (validar en controller) |
+
+> Los endpoints con "solo el dueño o admin" usan middleware `auth` en la ruta, pero el controller debe validar internamente que `req.usuario.id === reservacion.usuario_id` o que `req.usuario.rol === 'admin'` antes de operar. Si no cumple, responder `403`.
+
+Importar así en `routes/reservaciones.js`:
+```js
+const { auth, authAdmin } = require('../middleware/auth');
 ```
 
 ---
@@ -218,6 +264,25 @@ frontend/src/components/EspacioCard.jsx
 frontend/src/components/FiltroEspacios.jsx
 frontend/src/components/DisponibilidadCalendario.jsx
 docs/screenshots/espacios/   ← carpeta con imágenes .png
+```
+
+### Roles y permisos
+
+Diego no maneja middleware (es frontend), pero debe controlar la visibilidad de los elementos según el rol del usuario, disponible en `useAuth()`:
+
+| Elemento UI | Visible para | Oculto para |
+|-------------|-------------|-------------|
+| Botón "Crear espacio" | `rol === 'admin'` | `rol === 'usuario'` |
+| Botón "Editar espacio" | `rol === 'admin'` | `rol === 'usuario'` |
+| Botón "Eliminar espacio" | `rol === 'admin'` | `rol === 'usuario'` |
+| Listado de espacios | Todos | — |
+| Consulta de disponibilidad | Todos | — |
+
+Ejemplo de uso en JSX:
+```jsx
+const { usuario } = useAuth();
+
+{usuario.rol === 'admin' && <button>Crear espacio</button>}
 ```
 
 ---
@@ -269,6 +334,28 @@ frontend/src/components/FormularioReservacion.jsx
 docs/screenshots/reservaciones/   ← carpeta con imágenes .png
 ```
 
+### Roles y permisos
+
+Cheluis no maneja middleware (es frontend), pero debe adaptar las vistas según el rol del usuario:
+
+| Elemento UI | Comportamiento según rol |
+|-------------|-------------------------|
+| Lista de reservaciones en Dashboard | Admin: consume `GET /api/reservaciones` (todas). Usuario: consume `GET /api/reservaciones/mis-reservaciones` (solo las suyas) |
+| Botón "Cancelar" en `ReservacionCard` | Visible solo si `usuario.id === reservacion.usuario_id` o `usuario.rol === 'admin'` |
+
+Ejemplo de uso en JSX:
+```jsx
+const { usuario } = useAuth();
+
+// Seleccionar endpoint según rol
+const url = usuario.rol === 'admin' ? '/reservaciones' : '/reservaciones/mis-reservaciones';
+
+// Mostrar cancelar solo si es dueño o admin
+{(usuario.rol === 'admin' || usuario.id === reservacion.usuario_id) && (
+  <button>Cancelar</button>
+)}
+```
+
 ---
 
 ## Integrante 6 — Heber
@@ -309,6 +396,21 @@ database/seeds.sql
 **Archivos a crear:**
 ```
 docs/base-de-datos.md
+```
+
+### Roles y permisos
+
+| Endpoint | Middleware | Acceso |
+|----------|-----------|--------|
+| `GET /api/notificaciones` | `auth` | Cada usuario ve solo las suyas (filtrar por `usuario_id` del token) |
+| `PATCH /api/notificaciones/:id/leer` | `auth` | Solo el dueño de la notificación (validar en controller) |
+| `GET /api/notificaciones/no-leidas` | `auth` | Solo las del usuario autenticado |
+
+> En el controller, usar siempre `req.usuario.id` como filtro en la query SQL. Nunca confiar en un `usuario_id` que venga del body o de los params — eso sería una vulnerabilidad de control de acceso.
+
+Importar así en `routes/notificaciones.js`:
+```js
+const { auth } = require('../middleware/auth');
 ```
 
 ---
@@ -355,6 +457,32 @@ docs/base-de-datos.md
 POSTMAN_COLLECTION.json
 DOCUMENTACION.md
 ```
+
+### Roles y permisos
+
+Karla debe incluir en `DOCUMENTACION.md` una tabla consolidada de roles y permisos con todos los endpoints del sistema:
+
+| Módulo | Endpoint | Middleware | Rol mínimo |
+|--------|----------|-----------|-----------|
+| Auth | `POST /api/auth/login` | — | Público |
+| Auth | `POST /api/auth/registro` | — | Público |
+| Espacios | `GET /api/espacios` | `auth` | usuario |
+| Espacios | `GET /api/espacios/:id` | `auth` | usuario |
+| Espacios | `GET /api/espacios/:id/recursos` | `auth` | usuario |
+| Espacios | `POST /api/espacios` | `authAdmin` | admin |
+| Espacios | `PUT /api/espacios/:id` | `authAdmin` | admin |
+| Espacios | `DELETE /api/espacios/:id` | `authAdmin` | admin |
+| Reservaciones | `GET /api/reservaciones` | `authAdmin` | admin |
+| Reservaciones | `GET /api/reservaciones/mis-reservaciones` | `auth` | usuario |
+| Reservaciones | `GET /api/reservaciones/:id` | `auth` | usuario (solo dueño o admin) |
+| Reservaciones | `POST /api/reservaciones` | `auth` | usuario |
+| Reservaciones | `PATCH /api/reservaciones/:id/cancelar` | `auth` | usuario (solo dueño o admin) |
+| Reservaciones | `PUT /api/reservaciones/:id` | `auth` | usuario (solo dueño o admin) |
+| Disponibilidad | `GET /api/disponibilidad/:espacioId` | `auth` | usuario |
+| Disponibilidad | `POST /api/disponibilidad/verificar` | `auth` | usuario |
+| Notificaciones | `GET /api/notificaciones` | `auth` | usuario (solo las propias) |
+| Notificaciones | `PATCH /api/notificaciones/:id/leer` | `auth` | usuario (solo dueño) |
+| Notificaciones | `GET /api/notificaciones/no-leidas` | `auth` | usuario (solo las propias) |
 
 ---
 
