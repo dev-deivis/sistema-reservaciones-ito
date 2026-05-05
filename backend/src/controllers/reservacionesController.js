@@ -64,27 +64,33 @@ const crearReservacion = async (req, res, next) => {
   }
 };
 
-const listarReservaciones = async (req, res, next) => {
+const listarTodasReservaciones = async (req, res, next) => {
   try {
-    const usuario_id = req.usuario.id;
-    const { rol } = req.usuario;
-
-    let query = `
+    const result = await pool.query(`
       SELECT r.*, u.nombre AS usuario_nombre, e.nombre AS espacio_nombre
       FROM reservaciones r
       JOIN usuarios u ON r.usuario_id = u.id
       JOIN espacios e ON r.espacio_id = e.id
-    `;
-    const params = [];
+      ORDER BY r.fecha_inicio DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+};
 
-    if (rol !== 'admin') {
-      query += ' WHERE r.usuario_id = $1';
-      params.push(usuario_id);
-    }
+const listarMisReservaciones = async (req, res, next) => {
+  try {
+    const usuario_id = req.usuario.id;
 
-    query += ' ORDER BY r.fecha_inicio DESC';
-
-    const result = await pool.query(query, params);
+    const result = await pool.query(`
+      SELECT r.*, u.nombre AS usuario_nombre, e.nombre AS espacio_nombre
+      FROM reservaciones r
+      JOIN usuarios u ON r.usuario_id = u.id
+      JOIN espacios e ON r.espacio_id = e.id
+      WHERE r.usuario_id = $1
+      ORDER BY r.fecha_inicio DESC
+    `, [usuario_id]);
     res.json(result.rows);
   } catch (err) {
     next(err);
@@ -205,6 +211,16 @@ const modificarReservacion = async (req, res, next) => {
       return res.status(409).json({ error: 'El espacio ya está reservado en ese horario' });
     }
 
+    const bloqueado = await pool.query(`
+      SELECT id FROM horarios_bloqueados
+      WHERE espacio_id = $1
+        AND (fecha_inicio, fecha_fin) OVERLAPS ($2::timestamp, $3::timestamp)
+    `, [res_data.espacio_id, nueva_inicio, nueva_fin]);
+
+    if (bloqueado.rows.length > 0) {
+      return res.status(409).json({ error: 'El espacio está bloqueado en ese horario' });
+    }
+
     const result = await pool.query(
       `UPDATE reservaciones SET
         fecha_inicio = $1, fecha_fin = $2, motivo = COALESCE($3, motivo)
@@ -224,4 +240,4 @@ const modificarReservacion = async (req, res, next) => {
   }
 };
 
-module.exports = { crearReservacion, listarReservaciones, obtenerReservacion, cancelarReservacion, modificarReservacion };
+module.exports = { crearReservacion, listarTodasReservaciones, listarMisReservaciones, obtenerReservacion, cancelarReservacion, modificarReservacion };
