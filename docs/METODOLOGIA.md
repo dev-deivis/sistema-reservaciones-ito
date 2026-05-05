@@ -52,7 +52,7 @@ El tablero tiene 4 columnas. Cada tarjeta representa el módulo de un integrante
 |-----------|-----------|--------|--------|
 | #4 | David | Módulo de disponibilidad | **Done** |
 | #5 | Isaac | Módulo de espacios (backend) | Todo |
-| #3 | Alex | Módulo de reservaciones (backend) | Todo |
+| #3 | Alex | Módulo de reservaciones (backend) | **Done** |
 | #6 | Diego | Frontend — espacios y disponibilidad | Todo |
 | #7 | Cheluis | Frontend — reservaciones y dashboard | Todo |
 | #8 | Heber | Base de datos y notificaciones | Todo |
