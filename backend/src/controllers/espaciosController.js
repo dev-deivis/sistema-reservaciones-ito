@@ -18,8 +18,19 @@ const obtenerEspacio = async (req, res, next) => {
   try {
     const { id } = req.params;
     const result = await pool.query(`
-      SELECT e.*, te.nombre AS tipo_nombre,
-        json_agg(json_build_object('id', r.id, 'nombre', r.nombre, 'descripcion', r.descripcion)) AS recursos
+      SELECT 
+         e.*, 
+         te.nombre AS tipo_nombre,
+        COALESCE(
+        json_agg(
+          json_build_object(
+              'id', r.id, 
+              'nombre', r.nombre, 
+              'descripcion', r.descripcion
+                )
+               )  FILTER (WHERE r.id IS NOT NULL),
+                 '[]'
+                 ) AS recursos
       FROM espacios e
       LEFT JOIN tipo_espacio te ON e.tipo_espacio_id = te.id
       LEFT JOIN recursos r ON r.espacio_id = e.id
@@ -73,6 +84,11 @@ const actualizarEspacio = async (req, res, next) => {
     const { id } = req.params;
     const { nombre, capacidad, ubicacion, estado, tipo_espacio_id } = req.body;
 
+    if(capacidad < 0){
+      return res.status(400).json({ error: 'La capacidad no puede ser negativa' });
+    }
+
+
     const result = await pool.query(
       `UPDATE espacios SET
         nombre = COALESCE($1, nombre),
@@ -97,16 +113,55 @@ const actualizarEspacio = async (req, res, next) => {
 const eliminarEspacio = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('DELETE FROM espacios WHERE id = $1 RETURNING id', [id]);
+
+    // 1. Validar si tiene reservaciones activas
+    const check = await pool.query(
+      `SELECT 1 FROM reservaciones 
+       WHERE espacio_id = $1 
+       AND estado IN ('pendiente', 'confirmada')`,
+      [id]
+    );
+
+    if (check.rows.length > 0) {
+      return res.status(409).json({
+        error: 'No se puede eliminar el espacio porque tiene reservaciones activas'
+      });
+    }
+
+    // 2. Eliminar espacio
+    const result = await pool.query(
+      'DELETE FROM espacios WHERE id = $1 RETURNING id',
+      [id]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Espacio no encontrado' });
     }
 
     res.json({ mensaje: 'Espacio eliminado correctamente' });
+
   } catch (err) {
     next(err);
   }
 };
 
-module.exports = { listarEspacios, obtenerEspacio, crearEspacio, actualizarEspacio, eliminarEspacio };
+const obtenerRecursosDeEspacio = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(`
+      SELECT 
+        r.id,
+        r.nombre,
+        r.descripcion
+      FROM recursos r
+      WHERE r.espacio_id = $1
+    `, [id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { listarEspacios, obtenerEspacio, crearEspacio, actualizarEspacio, eliminarEspacio, obtenerRecursosDeEspacio };
