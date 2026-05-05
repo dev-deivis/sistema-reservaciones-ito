@@ -44,6 +44,18 @@ const crearEspacio = async (req, res, next) => {
     if (!nombre || !capacidad || !tipo_espacio_id) {
       return res.status(400).json({ error: 'Nombre, capacidad y tipo_espacio_id son requeridos' });
     }
+      if (isNaN(capacidad)) {
+  return res.status(400).json({
+    error: 'La capacidad debe ser un número'
+  });
+  }
+    if(capacidad <= 0){
+      return res.status(400).json({ error: 'La capacidad debe ser un número positivo' });
+    }
+    if(capacidad > 50){
+      return res.status(400).json({ error: 'La capacidad no puede exceder 50' });
+    }
+  
 
     const result = await pool.query(
       'INSERT INTO espacios (nombre, capacidad, ubicacion, estado, tipo_espacio_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',

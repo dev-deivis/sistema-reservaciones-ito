@@ -5,7 +5,8 @@ const {
   listarEspacios, obtenerEspacio, crearEspacio, actualizarEspacio, eliminarEspacio
 } = require('../controllers/espaciosController');
 
-router.get('/', auth, listarEspacios);
+//router.get('/', auth, listarEspacios);//
+router.get('/', listarEspacios);
 router.get('/:id', auth, obtenerEspacio);
 router.post('/', authAdmin, crearEspacio);
 router.put('/:id', authAdmin, actualizarEspacio);
