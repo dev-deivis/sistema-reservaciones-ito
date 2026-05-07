@@ -1,15 +1,40 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 
+const IconCalendario = () => (
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+);
+
+const IconCalBtn = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: "8px", flexShrink: 0}}>
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+    <line x1="16" y1="2" x2="16" y2="6"/>
+    <line x1="8" y1="2" x2="8" y2="6"/>
+    <line x1="3" y1="10" x2="21" y2="10"/>
+  </svg>
+);
+
+const IconCheck = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: "8px", flexShrink: 0}}>
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+
 export default function FormularioReservacion({ onSuccess }) {
   const [espacios, setEspacios] = useState([]);
+  const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
   const [form, setForm] = useState({
     espacio_id: "",
     fecha_inicio: "",
     fecha_fin: "",
     motivo: "",
   });
-  const [disponibilidad, setDisponibilidad] = useState(null); // null | true | false
+  const [disponibilidad, setDisponibilidad] = useState(null);
   const [verificando, setVerificando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
@@ -19,8 +44,13 @@ export default function FormularioReservacion({ onSuccess }) {
   }, []);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setDisponibilidad(null); // reset al cambiar algo
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    setDisponibilidad(null);
+    if (name === "espacio_id") {
+      const esp = espacios.find((es) => String(es.id) === String(value));
+      setEspacioSeleccionado(esp || null);
+    }
   };
 
   const verificarDisponibilidad = async () => {
@@ -59,149 +89,185 @@ export default function FormularioReservacion({ onSuccess }) {
     }
   };
 
+  const inputStyle = {
+    width: "100%",
+    padding: "11px 14px",
+    borderRadius: "8px",
+    border: "1.5px solid #d1d5db",
+    fontSize: "14px",
+    color: "#111827",
+    background: "white",
+    boxSizing: "border-box",
+    outline: "none",
+    fontFamily: "inherit",
+    transition: "border-color 0.2s",
+  };
+
   return (
-    <div style={styles.card}>
-      <div style={styles.field}>
-        <label style={styles.label}>Espacio</label>
-        <select
-          name="espacio_id"
-          value={form.espacio_id}
-          onChange={handleChange}
-          style={styles.input}
-        >
-          <option value="">-- Selecciona un espacio --</option>
-          {espacios.map((e) => (
-            <option key={e.id} value={e.id}>
-              {e.nombre} — {e.tipo}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "20px", alignItems: "start" }}>
 
-      <div style={styles.field}>
-        <label style={styles.label}>Fecha y hora de inicio</label>
-        <input
-          type="datetime-local"
-          name="fecha_inicio"
-          value={form.fecha_inicio}
-          onChange={handleChange}
-          style={styles.input}
-        />
-      </div>
+      {/* ── Columna izquierda: formulario ── */}
+      <div style={{ background: "white", borderRadius: "14px", border: "1.5px solid #e5e7eb", padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>
 
-      <div style={styles.field}>
-        <label style={styles.label}>Fecha y hora de fin</label>
-        <input
-          type="datetime-local"
-          name="fecha_fin"
-          value={form.fecha_fin}
-          onChange={handleChange}
-          style={styles.input}
-        />
-      </div>
+        {/* Espacio */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "14px", fontWeight: "600", color: "#111827" }}>
+            Espacio <span style={{ color: "#b91c1c" }}>*</span>
+          </label>
+          <select name="espacio_id" value={form.espacio_id} onChange={handleChange} style={inputStyle}>
+            <option value="">Selecciona un espacio</option>
+            {espacios.map((e) => (
+              <option key={e.id} value={e.id}>{e.nombre}</option>
+            ))}
+          </select>
+        </div>
 
-      <div style={styles.field}>
-        <label style={styles.label}>Motivo (opcional)</label>
-        <textarea
-          name="motivo"
-          value={form.motivo}
-          onChange={handleChange}
-          rows={3}
-          placeholder="Describe el motivo de la reservación..."
-          style={{ ...styles.input, resize: "vertical" }}
-        />
-      </div>
+        {/* Fecha inicio */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "14px", fontWeight: "600", color: "#111827" }}>
+            Fecha y hora de inicio <span style={{ color: "#b91c1c" }}>*</span>
+          </label>
+          <input type="datetime-local" name="fecha_inicio" value={form.fecha_inicio} onChange={handleChange} style={inputStyle} />
+        </div>
 
-      {error && <p style={styles.errorMsg}>{error}</p>}
+        {/* Fecha fin */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "14px", fontWeight: "600", color: "#111827" }}>
+            Fecha y hora de fin <span style={{ color: "#b91c1c" }}>*</span>
+          </label>
+          <input type="datetime-local" name="fecha_fin" value={form.fecha_fin} onChange={handleChange} style={inputStyle} />
+        </div>
 
-      {disponibilidad === true && (
-        <p style={styles.disponible}>✅ El espacio está disponible en ese horario.</p>
-      )}
-      {disponibilidad === false && (
-        <p style={styles.noDisponible}>❌ El espacio no está disponible en ese horario.</p>
-      )}
+        {/* Motivo */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <label style={{ fontSize: "14px", fontWeight: "600", color: "#111827" }}>
+            Motivo de la reservacion <span style={{ fontSize: "13px", fontWeight: "400", color: "#6b7280" }}>(opcional)</span>
+          </label>
+          <textarea
+            name="motivo"
+            value={form.motivo}
+            onChange={handleChange}
+            rows={4}
+            placeholder="Describe el proposito de la reservacion..."
+            style={{ ...inputStyle, resize: "vertical" }}
+          />
+        </div>
 
-      <button
-        onClick={verificarDisponibilidad}
-        disabled={verificando}
-        style={styles.btnSecundario}
-      >
-        {verificando ? "Verificando..." : "Verificar disponibilidad"}
-      </button>
+        {/* Mensajes de disponibilidad */}
+        {error && (
+          <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px 14px", color: "#b91c1c", fontSize: "14px" }}>
+            {error}
+          </div>
+        )}
+        {disponibilidad === true && (
+          <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "10px 14px", color: "#15803d", fontSize: "14px", fontWeight: "600" }}>
+            ✅ El espacio está disponible en ese horario.
+          </div>
+        )}
+        {disponibilidad === false && (
+          <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px 14px", color: "#b91c1c", fontSize: "14px", fontWeight: "600" }}>
+            ❌ El espacio no está disponible en ese horario.
+          </div>
+        )}
 
-      {disponibilidad === true && (
+        {/* Botón verificar */}
         <button
-          onClick={handleSubmit}
-          disabled={enviando}
-          style={styles.btnPrimario}
+          onClick={verificarDisponibilidad}
+          disabled={verificando}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "14px", borderRadius: "9px", border: "none",
+            background: verificando ? "#9b2020" : "#b91c1c",
+            color: "white", fontWeight: "600", cursor: verificando ? "not-allowed" : "pointer",
+            fontSize: "15px", width: "100%", transition: "background 0.2s",
+          }}
         >
-          {enviando ? "Confirmando..." : "Confirmar reservación"}
+          <IconCalBtn />
+          {verificando ? "Verificando..." : "Verificar disponibilidad"}
         </button>
-      )}
+
+        {/* Botón confirmar */}
+        {disponibilidad === true && (
+          <button
+            onClick={handleSubmit}
+            disabled={enviando}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "14px", borderRadius: "9px", border: "none",
+              background: enviando ? "#166534" : "#16a34a",
+              color: "white", fontWeight: "600", cursor: enviando ? "not-allowed" : "pointer",
+              fontSize: "15px", width: "100%", transition: "background 0.2s",
+            }}
+          >
+            <IconCheck />
+            {enviando ? "Confirmando..." : "Confirmar reservación"}
+          </button>
+        )}
+      </div>
+
+      {/* ── Columna derecha ── */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+        {/* Panel detalle espacio */}
+        <div style={{
+          background: "#f9fafb", borderRadius: "14px", border: "1.5px solid #e5e7eb",
+          padding: "28px", minHeight: "170px", display: "flex",
+          flexDirection: "column", alignItems: "center", justifyContent: "center",
+        }}>
+          {espacioSeleccionado ? (
+            <div style={{ width: "100%", alignSelf: "flex-start" }}>
+              <p style={{ fontWeight: "700", fontSize: "16px", color: "#111827", margin: "0 0 10px 0" }}>
+                {espacioSeleccionado.nombre}
+              </p>
+              <p style={{ fontSize: "14px", color: "#6b7280", margin: "0 0 4px 0" }}>
+                Tipo: {espacioSeleccionado.tipo}
+              </p>
+              {espacioSeleccionado.capacidad && (
+                <p style={{ fontSize: "14px", color: "#6b7280", margin: "0 0 4px 0" }}>
+                  Capacidad: {espacioSeleccionado.capacidad} personas
+                </p>
+              )}
+              {espacioSeleccionado.descripcion && (
+                <p style={{ fontSize: "14px", color: "#6b7280", margin: "0" }}>
+                  {espacioSeleccionado.descripcion}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", color: "#9ca3af" }}>
+              <IconCalendario />
+              <p style={{ fontSize: "14px", margin: "12px 0 0 0" }}>
+                Selecciona un espacio para ver sus detalles
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Panel instrucciones */}
+        <div style={{ background: "white", borderRadius: "14px", border: "1.5px solid #e5e7eb", padding: "24px" }}>
+          <p style={{ fontWeight: "700", fontSize: "16px", color: "#111827", margin: "0 0 16px 0" }}>
+            Instrucciones
+          </p>
+          {[
+            "Selecciona el espacio que deseas reservar",
+            "Indica la fecha y hora de inicio y fin",
+            "Verifica la disponibilidad del espacio",
+            "Confirma tu reservacion",
+          ].map((texto, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: i < 3 ? "12px" : "0" }}>
+              <div style={{
+                background: "#fee2e2", color: "#b91c1c",
+                borderRadius: "50%", width: "26px", height: "26px",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "12px", fontWeight: "700", flexShrink: 0,
+              }}>
+                {i + 1}
+              </div>
+              <span style={{ fontSize: "14px", color: "#374151" }}>{texto}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
-
-const styles = {
-  card: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-  },
-  field: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-  },
-  label: {
-    fontSize: "14px",
-    fontWeight: "600",
-    color: "#374151",
-  },
-  input: {
-    padding: "10px 12px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    fontSize: "14px",
-    outline: "none",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  errorMsg: {
-    color: "#dc2626",
-    fontSize: "14px",
-    margin: 0,
-  },
-  disponible: {
-    color: "#16a34a",
-    fontSize: "14px",
-    fontWeight: "600",
-    margin: 0,
-  },
-  noDisponible: {
-    color: "#dc2626",
-    fontSize: "14px",
-    fontWeight: "600",
-    margin: 0,
-  },
-  btnSecundario: {
-    padding: "10px 16px",
-    borderRadius: "8px",
-    border: "2px solid #3b82f6",
-    background: "white",
-    color: "#3b82f6",
-    fontWeight: "600",
-    cursor: "pointer",
-    fontSize: "14px",
-  },
-  btnPrimario: {
-    padding: "10px 16px",
-    borderRadius: "8px",
-    border: "none",
-    background: "#3b82f6",
-    color: "white",
-    fontWeight: "600",
-    cursor: "pointer",
-    fontSize: "14px",
-  },
-};
