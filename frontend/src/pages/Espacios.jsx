@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
+import FiltroEspacios from '../components/FiltroEspacios';
+import EspacioCard from '../components/EspacioCard';
 
 const Espacios = () => {
+  const { usuario } = useAuth();
   const [espacios, setEspacios] = useState([]);
   const [cargando, setCargando] = useState(true);
+  
+  // Estados para filtros
+  const [filtros, setFiltros] = useState({
+    busqueda: '',
+    tipo: '',
+    estado: ''
+  });
 
   useEffect(() => {
     api.get('/espacios')
@@ -11,25 +22,77 @@ const Espacios = () => {
       .finally(() => setCargando(false));
   }, []);
 
-  if (cargando) return <p>Cargando espacios...</p>;
+  const handleFilterChange = (key, value) => {
+    setFiltros(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleReservar = (espacio) => {
+    // Lógica para ir a nueva reservación con el espacio preseleccionado
+    window.location.href = `/reservaciones/nueva?espacio=${espacio.id}`;
+  };
+
+  // Extraer tipos únicos
+  const tiposUnicos = Array.from(new Set(espacios.map(e => e.tipo_nombre).filter(Boolean)));
+
+  // Aplicar filtros
+  const espaciosFiltrados = espacios.filter(e => {
+    const matchBusqueda = e.nombre?.toLowerCase().includes(filtros.busqueda.toLowerCase()) || 
+                          e.ubicacion?.toLowerCase().includes(filtros.busqueda.toLowerCase());
+    const matchTipo = filtros.tipo === '' || e.tipo_nombre === filtros.tipo;
+    const matchEstado = filtros.estado === '' || e.estado === filtros.estado;
+    return matchBusqueda && matchTipo && matchEstado;
+  });
+
+  if (cargando) return <p style={{ padding: '2rem' }}>Cargando espacios...</p>;
 
   return (
-    <div>
-      <h2 style={{ marginBottom: '1.5rem' }}>Espacios Disponibles</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
-        {espacios.map((e) => (
-          <div className="card" key={e.id}>
-            <h3>{e.nombre}</h3>
-            <p style={{ color: '#666', marginBottom: '0.5rem' }}>{e.tipo_nombre}</p>
-            <p>Capacidad: <strong>{e.capacidad}</strong> personas</p>
-            <p>Ubicación: {e.ubicacion}</p>
-            <p style={{ marginTop: '0.5rem' }}>
-              <span className={`badge badge-${e.estado}`}>{e.estado}</span>
-            </p>
-          </div>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem 0' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#111827' }}>Espacios disponibles</h2>
+          <p style={{ color: '#6b7280', margin: '0.2rem 0 1.5rem 0' }}>Explora y reserva los espacios del Instituto</p>
+        </div>
+        
+        {usuario?.rol === 'admin' && (
+          <button style={{ 
+            backgroundColor: '#1976d2', 
+            color: 'white', 
+            border: 'none', 
+            padding: '0.6rem 1.2rem', 
+            borderRadius: '8px', 
+            fontWeight: '500',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Crear espacio
+          </button>
+        )}
+      </div>
+
+      <FiltroEspacios 
+        tipos={tiposUnicos} 
+        onFilterChange={handleFilterChange} 
+      />
+
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', 
+        gap: '1.5rem' 
+      }}>
+        {espaciosFiltrados.map((e) => (
+          <EspacioCard key={e.id} espacio={e} onReservar={handleReservar} />
         ))}
       </div>
-      {espacios.length === 0 && <p>No hay espacios registrados.</p>}
+      
+      {espaciosFiltrados.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 1rem auto', display: 'block' }}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <p style={{ color: '#6b7280', fontSize: '1.1rem' }}>No se encontraron espacios que coincidan con los filtros.</p>
+        </div>
+      )}
     </div>
   );
 };
