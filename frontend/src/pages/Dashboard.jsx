@@ -9,17 +9,27 @@ const Dashboard = () => {
 
   useEffect(() => {
     const cargarStats = async () => {
+      const endpointReservaciones = usuario?.rol === 'admin'
+        ? '/reservaciones'
+        : '/reservaciones/mis-reservaciones';
+
+      let totalReservaciones = 0;
+      let noLeidas = 0;
+
       try {
-        const [resReservaciones, resNotifs] = await Promise.all([
-          api.get('/reservaciones'),
-          api.get('/notificaciones'),
-        ]);
-        const noLeidas = resNotifs.data.filter((n) => !n.leida).length;
-        setStats({ reservaciones: resReservaciones.data.length, notificaciones: noLeidas });
+        const resReservaciones = await api.get(endpointReservaciones);
+        totalReservaciones = resReservaciones.data.length;
       } catch {}
+
+      try {
+        const resNotifs = await api.get('/notificaciones');
+        noLeidas = resNotifs.data.filter((n) => !n.leida).length;
+      } catch {}
+
+      setStats({ reservaciones: totalReservaciones, notificaciones: noLeidas });
     };
     cargarStats();
-  }, []);
+  }, [usuario]);
 
   return (
     <div>
