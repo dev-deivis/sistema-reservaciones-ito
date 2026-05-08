@@ -1,7 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Espacios from './pages/Espacios';
@@ -19,17 +20,31 @@ const AppRoutes = () => {
 
   return (
     <Router>
-      {usuario && <Navbar />}
-      <div className="container" style={{ marginTop: '1.5rem' }}>
+      {usuario ? (
+        <div style={{ display: 'flex', minHeight: '100vh', background: '#f8f9fb' }}>
+          {/* Sidebar fijo izquierda */}
+          <Sidebar />
+
+          {/* Todo lo de la derecha: topbar + contenido */}
+          <div style={{ marginLeft: '260px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <Layout>
+              <Routes>
+                <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+                <Route path="/espacios" element={<ProtectedRoute><Espacios /></ProtectedRoute>} />
+                <Route path="/reservaciones" element={<ProtectedRoute><Reservaciones /></ProtectedRoute>} />
+                <Route path="/reservaciones/nueva" element={<ProtectedRoute><NuevaReservacion /></ProtectedRoute>} />
+                <Route path="/notificaciones" element={<ProtectedRoute><Notificaciones /></ProtectedRoute>} />
+                <Route path="/login" element={<Navigate to="/" />} />
+              </Routes>
+            </Layout>
+          </div>
+        </div>
+      ) : (
         <Routes>
-          <Route path="/login" element={usuario ? <Navigate to="/" /> : <Login />} />
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/espacios" element={<ProtectedRoute><Espacios /></ProtectedRoute>} />
-          <Route path="/reservaciones" element={<ProtectedRoute><Reservaciones /></ProtectedRoute>} />
-          <Route path="/reservaciones/nueva" element={<ProtectedRoute><NuevaReservacion /></ProtectedRoute>} />
-          <Route path="/notificaciones" element={<ProtectedRoute><Notificaciones /></ProtectedRoute>} />
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/login" />} />
         </Routes>
-      </div>
+      )}
     </Router>
   );
 };

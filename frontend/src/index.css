@@ -10,12 +10,6 @@ body {
   color: #333;
 }
 
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
 .btn {
   padding: 0.5rem 1.2rem;
   border: none;
@@ -25,24 +19,10 @@ body {
   transition: opacity 0.2s;
 }
 
-.btn:hover {
-  opacity: 0.85;
-}
-
-.btn-primary {
-  background-color: #1976d2;
-  color: white;
-}
-
-.btn-danger {
-  background-color: #d32f2f;
-  color: white;
-}
-
-.btn-secondary {
-  background-color: #757575;
-  color: white;
-}
+.btn:hover { opacity: 0.85; }
+.btn-primary { background-color: #1976d2; color: white; }
+.btn-danger { background-color: #d32f2f; color: white; }
+.btn-secondary { background-color: #757575; color: white; }
 
 .card {
   background: white;
@@ -66,16 +46,8 @@ body {
 .badge-disponible { background-color: #d1e7dd; color: #0a3622; }
 .badge-no-disponible { background-color: #f8d7da; color: #58151c; }
 
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.4rem;
-  font-weight: 500;
-}
-
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.4rem; font-weight: 500; }
 .form-group input,
 .form-group select,
 .form-group textarea {
@@ -86,28 +58,4 @@ body {
   font-size: 0.95rem;
 }
 
-.error-message {
-  color: #d32f2f;
-  font-size: 0.85rem;
-  margin-top: 0.5rem;
-}
-
-nav {
-  background-color: #1976d2;
-  color: white;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-nav a {
-  color: white;
-  text-decoration: none;
-  margin-right: 1.5rem;
-  font-weight: 500;
-}
-
-nav a:hover {
-  text-decoration: underline;
-}
+.error-message { color: #d32f2f; font-size: 0.85rem; margin-top: 0.5rem; }
