@@ -97,36 +97,50 @@ const Dashboard = () => {
 
   useEffect(() => {
     const cargar = async () => {
+      const endpointReservaciones = usuario?.rol === 'admin'
+        ? '/reservaciones'
+        : '/reservaciones/mis-reservaciones';
+
+      let reservaciones = [];
+      let notificaciones = [];
+      let espacios = [];
+
       try {
-        const [resR, resN, resE] = await Promise.all([
-          api.get('/reservaciones'),
-          api.get('/notificaciones'),
-          api.get('/espacios'),
-        ]);
-        const reservaciones = resR.data;
-        const noLeidas = resN.data.filter(n => !n.leida).length;
-        const activas = reservaciones.filter(r => r.estado === 'pendiente' || r.estado === 'confirmada').length;
-
-        setStats({
-          total: reservaciones.length,
-          activas,
-          notificaciones: noLeidas,
-          espacios: resE.data.length,
-        });
-
-        // Próximas: activas ordenadas por fecha
-        const prox = reservaciones
-          .filter(r => r.estado === 'pendiente' || r.estado === 'confirmada')
-          .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio))
-          .slice(0, 3);
-        setProximas(prox);
-
-        // Actividad reciente: notificaciones
-        setActividad(resN.data.slice(0, 3));
+        const resR = await api.get(endpointReservaciones);
+        reservaciones = resR.data;
       } catch {}
+
+      try {
+        const resN = await api.get('/notificaciones');
+        notificaciones = resN.data;
+      } catch {}
+
+      try {
+        const resE = await api.get('/espacios');
+        espacios = resE.data;
+      } catch {}
+
+      const activas = reservaciones.filter(r => r.estado === 'pendiente' || r.estado === 'confirmada').length;
+      const noLeidas = notificaciones.filter(n => !n.leida).length;
+
+      setStats({
+        total: reservaciones.length,
+        activas,
+        notificaciones: noLeidas,
+        espacios: espacios.length,
+      });
+
+      const prox = reservaciones
+        .filter(r => r.estado === 'pendiente' || r.estado === 'confirmada')
+        .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio))
+        .slice(0, 3);
+      setProximas(prox);
+
+      setActividad(notificaciones.slice(0, 3));
     };
+
     cargar();
-  }, []);
+  }, [usuario]);
 
   const nombre = usuario?.nombre?.split(' ')[0] || 'Usuario';
 
