@@ -9,6 +9,7 @@ const {
 router.get('/', auth, listarEspacios);
 router.get('/:id', auth, obtenerEspacio);
 router.get('/:id/recursos', auth, obtenerRecursosDeEspacio);
+//router.get('/:id/recursos', auth, obtenerRecursosDeEspacio);
 
 router.post('/', authAdmin, crearEspacio);
 router.put('/:id', authAdmin, actualizarEspacio);
