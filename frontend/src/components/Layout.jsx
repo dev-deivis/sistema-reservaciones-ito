@@ -24,24 +24,24 @@ const Layout = ({ children }) => {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {/* Topbar */}
       <div style={{
-        height: '56px', background: 'white', borderBottom: '1px solid #e5e7eb',
+        height: '64px', background: 'white', borderBottom: '1px solid #e5e7eb',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 24px', position: 'sticky', top: 0, zIndex: 50,
+        padding: '0 32px', position: 'sticky', top: 0, zIndex: 50,
       }}>
         {/* Título con barra roja */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '4px', height: '28px', background: '#c0392b', borderRadius: '2px' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{ width: '4px', height: '32px', background: '#c0392b', borderRadius: '2px' }} />
           <div>
-            <p style={{ margin: 0, fontWeight: '700', fontSize: '15px', color: '#111827' }}>Sistema de Reservaciones</p>
-            <p style={{ margin: 0, fontSize: '11px', color: '#6b7280' }}>Instituto Tecnologico de Oaxaca</p>
+            <p style={{ margin: 0, fontWeight: '700', fontSize: '17px', color: '#111827' }}>Sistema de Reservaciones</p>
+            <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Instituto Tecnologico de Oaxaca</p>
           </div>
         </div>
 
         {/* Derecha: modo oscuro + campana + usuario */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {/* Botón modo oscuro */}
           <button style={{
-            width: '36px', height: '36px', borderRadius: '8px', border: '1px solid #e5e7eb',
+            width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #e5e7eb',
             background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', color: '#6b7280',
           }}>
@@ -50,7 +50,7 @@ const Layout = ({ children }) => {
 
           {/* Campana con badge */}
           <button style={{
-            width: '36px', height: '36px', borderRadius: '8px', border: '1px solid #e5e7eb',
+            width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #e5e7eb',
             background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
             cursor: 'pointer', color: '#6b7280', position: 'relative',
           }}>
@@ -58,26 +58,26 @@ const Layout = ({ children }) => {
             <span style={{
               position: 'absolute', top: '4px', right: '4px',
               background: '#c0392b', color: 'white', borderRadius: '50%',
-              width: '16px', height: '16px', fontSize: '10px', fontWeight: '700',
+              width: '18px', height: '18px', fontSize: '11px', fontWeight: '700',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>3</span>
           </button>
 
           {/* Nombre + rol + avatar */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ textAlign: 'right' }}>
-              <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#111827' }}>{usuario?.nombre}</p>
+              <p style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: '#111827' }}>{usuario?.nombre}</p>
               {usuario?.rol === 'admin' && (
                 <span style={{
-                  fontSize: '10px', color: '#c0392b', fontWeight: '700',
-                  background: '#fee2e2', padding: '1px 6px', borderRadius: '4px',
+                  fontSize: '11px', color: '#c0392b', fontWeight: '700',
+                  background: '#fee2e2', padding: '2px 8px', borderRadius: '4px',
                 }}>ADMIN</span>
               )}
             </div>
             <div style={{
-              width: '36px', height: '36px', borderRadius: '50%', background: '#c0392b',
+              width: '40px', height: '40px', borderRadius: '50%', background: '#c0392b',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: '700', fontSize: '13px',
+              color: 'white', fontWeight: '700', fontSize: '15px',
             }}>
               {iniciales}
             </div>
