@@ -9,6 +9,7 @@ import Espacios from './pages/Espacios';
 import Reservaciones from './pages/Reservaciones';
 import NuevaReservacion from './pages/NuevaReservacion';
 import Notificaciones from './pages/Notificaciones';
+import GestionEspacios from './pages/GestionEspacios';
 
 const ProtectedRoute = ({ children }) => {
   const { usuario } = useAuth();
@@ -34,6 +35,7 @@ const AppRoutes = () => {
                 <Route path="/reservaciones" element={<ProtectedRoute><Reservaciones /></ProtectedRoute>} />
                 <Route path="/reservaciones/nueva" element={<ProtectedRoute><NuevaReservacion /></ProtectedRoute>} />
                 <Route path="/notificaciones" element={<ProtectedRoute><Notificaciones /></ProtectedRoute>} />
+                <Route path="/gestion" element={<ProtectedRoute><GestionEspacios /></ProtectedRoute>} />
                 <Route path="/login" element={<Navigate to="/" />} />
               </Routes>
             </Layout>

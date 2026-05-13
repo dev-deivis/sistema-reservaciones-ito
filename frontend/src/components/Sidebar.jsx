@@ -45,8 +45,10 @@ const Sidebar = () => {
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  const isActive = (path) =>
-    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+  const isActive = (path) => {
+    if (path === '/reservaciones') return location.pathname === '/reservaciones';
+    return path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+  };
 
   const iniciales = usuario?.nombre
     ? usuario.nombre.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
