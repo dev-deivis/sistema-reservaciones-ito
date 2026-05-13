@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import DisponibilidadCalendario from './DisponibilidadCalendario';
+import api from '../api/axios';
 
 const getBadgeStyle = (estado) => {
   const baseStyle = {
@@ -30,6 +31,21 @@ const EspacioCard = ({ espacio, onReservar }) => {
 
   // Mock amenities para la UI visual si no vienen del backend
   const amenidades = espacio.recursos || ['Aire acondicionado', 'Proyector'];
+
+  // Agrega esto antes de: return (
+  const handleEliminar = async () => {
+    if (!confirm(`¿Eliminar "${espacio.nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      await api.delete(`/espacios/${espacio.id}`);
+      window.location.reload();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al eliminar el espacio');
+    }
+  };
+
+  const handleEditar = () => {
+    window.location.href = `/gestion?editar=${espacio.id}`;
+  };
 
   return (
     <>
@@ -96,8 +112,8 @@ const EspacioCard = ({ espacio, onReservar }) => {
           </div>
           {usuario?.rol === 'admin' && (
             <div style={{ display: 'flex', gap: '0.6rem' }}>
-              <button style={{ flex: 1, padding: '0.6rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', color: '#374151', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Editar</button>
-              <button style={{ flex: 1, padding: '0.6rem', backgroundColor: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Eliminar</button>
+              <button onClick={handleEditar} style={{ flex: 1, padding: '0.6rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', color: '#374151', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Editar</button>
+              <button onClick={handleEliminar} style={{ flex: 1, padding: '0.6rem', backgroundColor: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Eliminar</button>
             </div>
           )}
         </div>
