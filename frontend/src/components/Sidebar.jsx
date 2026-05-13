@@ -65,53 +65,53 @@ const Sidebar = () => {
 
   return (
     <div style={{
-      width: '260px', minHeight: '100vh', background: '#1e2139',
+      width: '280px', minHeight: '100vh', background: '#1e2139',
       display: 'flex', flexDirection: 'column', position: 'fixed',
       top: 0, left: 0, bottom: 0, zIndex: 100,
     }}>
       {/* Logo */}
-      <div style={{ padding: '20px 16px 14px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ padding: '24px 20px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div style={{
-          width: '40px', height: '40px', background: '#c0392b', borderRadius: '10px',
+          width: '48px', height: '48px', background: '#c0392b', borderRadius: '12px',
           display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
         }}>
           <IconCalendario />
         </div>
         <div>
-          <p style={{ margin: 0, color: 'white', fontWeight: '700', fontSize: '15px', lineHeight: 1.2 }}>ReservaITO</p>
-          <p style={{ margin: 0, color: '#8892b0', fontSize: '11px' }}>Instituto Tecnológico</p>
+          <p style={{ margin: 0, color: 'white', fontWeight: '700', fontSize: '18px', lineHeight: 1.2 }}>ReservaITO</p>
+          <p style={{ margin: 0, color: '#8892b0', fontSize: '12px' }}>Instituto Tecnológico</p>
         </div>
       </div>
 
       {/* Badge rol */}
-      <div style={{ padding: '0 16px 14px' }}>
+      <div style={{ padding: '0 20px 16px' }}>
         <span style={{
           display: 'inline-block', background: '#c0392b', color: 'white',
-          borderRadius: '6px', padding: '3px 12px', fontSize: '11px', fontWeight: '600',
+          borderRadius: '6px', padding: '4px 14px', fontSize: '12px', fontWeight: '600',
         }}>
           {usuario?.rol === 'admin' ? 'Administrador' : 'Usuario'}
         </span>
       </div>
 
       {/* Nav */}
-      <nav style={{ flex: 1, padding: '0 10px' }}>
+      <nav style={{ flex: 1, padding: '0 12px' }}>
         <p style={{
-          fontSize: '10px', color: '#4a5578', fontWeight: '700',
+          fontSize: '11px', color: '#4a5578', fontWeight: '700',
           letterSpacing: '0.08em', textTransform: 'uppercase',
-          margin: '0 6px 8px',
+          margin: '0 8px 10px',
         }}>Menú Principal</p>
 
         {navItems.map(({ to, label, icon, badge }) => {
           const active = isActive(to);
           return (
             <Link key={to} to={to} style={{
-              display: 'flex', alignItems: 'center', gap: '10px',
-              padding: '10px 12px', borderRadius: '8px', marginBottom: '2px',
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '12px 16px', borderRadius: '8px', marginBottom: '4px',
               textDecoration: 'none',
               color: active ? 'white' : '#8892b0',
               background: active ? '#c0392b' : 'transparent',
               fontWeight: active ? '600' : '400',
-              fontSize: '14px',
+              fontSize: '15px',
               transition: 'all 0.15s',
             }}>
               {icon}
@@ -119,7 +119,7 @@ const Sidebar = () => {
               {badge && !active && (
                 <span style={{
                   background: '#c0392b', color: 'white', borderRadius: '10px',
-                  padding: '1px 7px', fontSize: '11px', fontWeight: '700',
+                  padding: '2px 8px', fontSize: '12px', fontWeight: '700',
                 }}>3</span>
               )}
             </Link>
@@ -128,24 +128,24 @@ const Sidebar = () => {
       </nav>
 
       {/* Usuario */}
-      <div style={{ padding: '12px 16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+      <div style={{ padding: '16px 20px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
           <div style={{
-            width: '34px', height: '34px', borderRadius: '50%', background: '#c0392b',
+            width: '40px', height: '40px', borderRadius: '50%', background: '#c0392b',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontWeight: '700', fontSize: '13px', flexShrink: 0,
+            color: 'white', fontWeight: '700', fontSize: '14px', flexShrink: 0,
           }}>
             {iniciales}
           </div>
-          <p style={{ margin: 0, color: '#cbd5e1', fontSize: '13px', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <p style={{ margin: 0, color: '#cbd5e1', fontSize: '14px', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {usuario?.nombre}
           </p>
         </div>
         <button onClick={handleLogout} style={{
           display: 'flex', alignItems: 'center', gap: '8px',
-          width: '100%', padding: '8px 12px', borderRadius: '7px',
+          width: '100%', padding: '10px 14px', borderRadius: '7px',
           border: 'none', background: 'rgba(255,255,255,0.05)',
-          color: '#8892b0', fontSize: '13px', cursor: 'pointer',
+          color: '#8892b0', fontSize: '14px', cursor: 'pointer',
         }}>
           <IconLogout /> Cerrar sesión
         </button>
