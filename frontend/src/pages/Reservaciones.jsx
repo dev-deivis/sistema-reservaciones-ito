@@ -15,7 +15,7 @@ const Reservaciones = () => {
 
   const cargar = () => {
     setCargando(true);
-    const url = usuario?.rol === 'admin' ? '/reservaciones' : '/reservaciones';
+    const url = usuario?.rol === 'admin' ? '/reservaciones' : '/reservaciones/mis-reservaciones';
     api.get(url)
       .then(({ data }) => setReservaciones(data))
       .catch(() => setError('Error al cargar reservaciones'))
