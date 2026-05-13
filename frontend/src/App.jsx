@@ -27,7 +27,7 @@ const AppRoutes = () => {
           <Sidebar />
 
           {/* Todo lo de la derecha: topbar + contenido */}
-          <div style={{ marginLeft: '280px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <div style={{ marginLeft: '320px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Layout>
               <Routes>
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
