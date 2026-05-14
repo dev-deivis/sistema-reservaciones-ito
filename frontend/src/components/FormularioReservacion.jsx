@@ -61,12 +61,10 @@ export default function FormularioReservacion({ onSuccess }) {
     }
     setVerificando(true);
     try {
-      const res = await api.get("/disponibilidad/espacio", {
-        params: {
-          espacio_id: form.espacio_id,
-          fecha_inicio: form.fecha_inicio,
-          fecha_fin: form.fecha_fin,
-        },
+      const res = await api.post("/disponibilidad/verificar", {
+        espacioId: form.espacio_id,
+        fecha_inicio: form.fecha_inicio,
+        fecha_fin: form.fecha_fin,
       });
       setDisponibilidad(res.data.disponible);
     } catch {
