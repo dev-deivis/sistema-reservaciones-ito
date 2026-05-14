@@ -1,4 +1,8 @@
-her# Gestión de Espacios — CRUD
+<<<<<<< HEAD
+# Gestión de Espacios — CRUD
+=======
+# Gestión de Espacios — CRUD
+>>>>>>> origin/main
 
 ## Descripción
 Este documento describe las funcionalidades implementadas en `GestionEspacios.jsx` para el módulo de administración de espacios. Los botones de "Agregar", "Editar" y "Eliminar" existían visualmente pero no tenían funcionalidad — solo imprimían en consola. Se completó la implementación de las tres acciones.
