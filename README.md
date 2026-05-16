@@ -144,9 +144,9 @@ JWT_EXPIRES_IN=24h
 
 ### Paso 4 — Instalar dependencias y levantar el sistema
 
-Abre **dos terminales** de forma simultánea.
+Abre **tres terminales** de forma simultánea.
 
-**Terminal 1 — Backend:**
+**Terminal 1 — Backend principal:**
 
 ```bash
 cd backend
@@ -157,7 +157,22 @@ npm run dev
 El servidor quedará disponible en `http://localhost:3000`.  
 Puedes verificarlo en `http://localhost:3000/api/health`.
 
-**Terminal 2 — Frontend:**
+**Terminal 2 — Microservicio de Notificaciones:**
+
+```bash
+cd notificaciones-service
+cp .env.example .env
+# Edita .env con las mismas credenciales de PostgreSQL que el backend
+npm install
+npm run dev
+```
+
+El microservicio quedará disponible en `http://localhost:3001`.  
+Puedes verificarlo en `http://localhost:3001/api/health`.
+
+> El microservicio de notificaciones es **opcional para el flujo principal**. Si no está corriendo, las reservaciones se crean y cancelan igual — solo se omiten las notificaciones.
+
+**Terminal 3 — Frontend:**
 
 ```bash
 cd frontend
@@ -272,6 +287,47 @@ Authorization: Bearer <token>
 | GET | `/api/notificaciones` | Listar notificaciones del usuario autenticado |
 | PATCH | `/api/notificaciones/:id/leer` | Marcar una notificación como leída |
 | PATCH | `/api/notificaciones/leer-todas` | Marcar todas las notificaciones como leídas |
+
+---
+
+## Microservicio de Notificaciones
+
+El sistema usa una arquitectura de microservicios para el módulo de notificaciones. El backend principal (`puerto 3000`) delega todas las operaciones de notificaciones a un servicio independiente (`puerto 3001`) mediante llamadas HTTP internas con Axios.
+
+```
+Frontend (5173) → Backend principal (3000) → Microservicio notificaciones (3001)
+                                          ↘ PostgreSQL (5432)
+```
+
+### Endpoints del microservicio (puerto 3001)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/notificaciones?usuario_id=X` | Listar notificaciones de un usuario |
+| GET | `/api/notificaciones/no-leidas?usuario_id=X` | Contar y listar no leídas |
+| POST | `/api/notificaciones` | Crear notificación (`usuario_id`, `reservacion_id`, `tipo`, `mensaje`) |
+| PATCH | `/api/notificaciones/:id/leer` | Marcar como leída (body: `{ usuario_id }`) |
+| PATCH | `/api/notificaciones/leer-todas?usuario_id=X` | Marcar todas como leídas |
+| GET | `/api/health` | Estado del microservicio |
+
+> El microservicio **no valida JWT**. La autenticación la realiza el backend principal antes de llamarlo. Los endpoints del microservicio están pensados para consumo interno, no para ser llamados directamente desde el frontend.
+
+### Tolerancia a fallos
+
+Si el microservicio de notificaciones no está disponible:
+- Las reservaciones se **crean y cancelan correctamente** — el flujo principal no se interrumpe.
+- Las notificaciones simplemente no se registran y aparece un `warn` en la consola del backend.
+- El backend imprime: `[reservaciones] microservicio de notificaciones no disponible — se omite notificación`.
+
+### Variable de entorno opcional
+
+Puedes cambiar la URL del microservicio en el `.env` del backend:
+
+```env
+NOTIF_SERVICE_URL=http://localhost:3001
+```
+
+Si no se define, el backend usa `http://localhost:3001` por defecto.
 
 ---
 

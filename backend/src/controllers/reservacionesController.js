@@ -1,4 +1,15 @@
 const pool = require('../models/db');
+const axios = require('axios');
+
+const NOTIF_URL = process.env.NOTIF_SERVICE_URL || 'http://localhost:3001';
+
+const notificar = async (payload) => {
+  try {
+    await axios.post(`${NOTIF_URL}/api/notificaciones`, payload);
+  } catch {
+    console.warn('[reservaciones] microservicio de notificaciones no disponible — se omite notificación');
+  }
+};
 
 const crearReservacion = async (req, res, next) => {
   try {
@@ -44,12 +55,13 @@ const crearReservacion = async (req, res, next) => {
 
     const reservacion = result.rows[0];
 
-    // Crear notificación
-    await pool.query(
-      `INSERT INTO notificaciones (usuario_id, reservacion_id, tipo, mensaje)
-       VALUES ($1, $2, 'confirmacion', $3)`,
-      [usuario_id, reservacion.id, `Tu reservación para el ${fecha_inicio} fue creada y está pendiente de aprobación`]
-    );
+    // Crear notificación vía microservicio (fire-and-forget, no bloquea el flujo)
+    await notificar({
+      usuario_id,
+      reservacion_id: reservacion.id,
+      tipo: 'confirmacion',
+      mensaje: `Tu reservación para el ${fecha_inicio} fue creada y está pendiente de aprobación`,
+    });
 
     // Registrar en historial
     await pool.query(
@@ -158,11 +170,12 @@ const cancelarReservacion = async (req, res, next) => {
       [id, usuario_id]
     );
 
-    await pool.query(
-      `INSERT INTO notificaciones (usuario_id, reservacion_id, tipo, mensaje)
-       VALUES ($1, $2, 'cancelacion', 'Tu reservación ha sido cancelada')`,
-      [res_data.usuario_id, id]
-    );
+    await notificar({
+      usuario_id: res_data.usuario_id,
+      reservacion_id: id,
+      tipo: 'cancelacion',
+      mensaje: 'Tu reservación ha sido cancelada',
+    });
 
     res.json(result.rows[0]);
   } catch (err) {
