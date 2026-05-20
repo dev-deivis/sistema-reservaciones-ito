@@ -16,6 +16,13 @@ const ProtectedRoute = ({ children }) => {
   return usuario ? children : <Navigate to="/login" />;
 };
 
+const AdminRoute = ({ children }) => {
+  const { usuario } = useAuth();
+  if (!usuario) return <Navigate to="/login" />;
+  if (usuario.rol !== 'admin') return <Navigate to="/" />;
+  return children;
+};
+
 const AppRoutes = () => {
   const { usuario } = useAuth();
 
@@ -35,7 +42,7 @@ const AppRoutes = () => {
                 <Route path="/reservaciones" element={<ProtectedRoute><Reservaciones /></ProtectedRoute>} />
                 <Route path="/reservaciones/nueva" element={<ProtectedRoute><NuevaReservacion /></ProtectedRoute>} />
                 <Route path="/notificaciones" element={<ProtectedRoute><Notificaciones /></ProtectedRoute>} />
-                <Route path="/gestion" element={<ProtectedRoute><GestionEspacios /></ProtectedRoute>} />
+                <Route path="/gestion" element={<AdminRoute><GestionEspacios /></AdminRoute>} />
                 <Route path="/login" element={<Navigate to="/" />} />
               </Routes>
             </Layout>

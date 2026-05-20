@@ -84,7 +84,6 @@ const ReservacionCard = ({ reservacion, onCancelar }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#6b7280', fontSize: '13px', marginBottom: '6px' }}>
             <IconPersona />
             <span>{r.usuario_nombre}</span>
-            {r.usuario_email && <span style={{ color: '#9ca3af' }}>({r.usuario_email})</span>}
           </div>
         )}
 
