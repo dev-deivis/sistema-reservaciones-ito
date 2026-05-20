@@ -97,7 +97,33 @@ Authorization: Bearer <token>
 
 ---
 
-## 2. GET /api/espacios/:id
+## 2. GET /api/espacios/tipos
+
+Descripción:  
+Devuelve la lista de todos los tipos de espacio registrados en el sistema. Lo usan los formularios de crear y editar espacio para poblar el selector de tipo.
+
+---
+
+## REQUEST
+
+GET /api/espacios/tipos  
+Authorization: Bearer <token>
+
+---
+
+## RESPONSE (200 OK)
+
+```json
+[
+  { "id": 1, "nombre": "Aula", "descripcion": "Sala de clases estándar" },
+  { "id": 2, "nombre": "Laboratorio", "descripcion": "Laboratorio equipado con equipo de cómputo" },
+  { "id": 3, "nombre": "Auditorio", "descripcion": "Sala de eventos y conferencias" }
+]
+```
+
+---
+
+## 3. GET /api/espacios/:id
 
 Descripción:  
 Obtiene la información detallada de un espacio específico por su ID.
