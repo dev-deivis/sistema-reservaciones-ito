@@ -7,6 +7,7 @@ import EspacioCard from '../components/EspacioCard';
 const Espacios = () => {
   const { usuario } = useAuth();
   const [espacios, setEspacios] = useState([]);
+  const [tiposEspacio, setTiposEspacio] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   // Estados para filtros
@@ -17,9 +18,13 @@ const Espacios = () => {
   });
 
   useEffect(() => {
-    api.get('/espacios')
-      .then(({ data }) => setEspacios(data))
-      .finally(() => setCargando(false));
+    Promise.all([
+      api.get('/espacios'),
+      api.get('/espacios/tipos'),
+    ]).then(([resE, resT]) => {
+      setEspacios(resE.data);
+      setTiposEspacio(resT.data.map(t => t.nombre));
+    }).finally(() => setCargando(false));
   }, []);
 
   const handleFilterChange = (key, value) => {
@@ -30,9 +35,6 @@ const Espacios = () => {
     // Lógica para ir a nueva reservación con el espacio preseleccionado
     window.location.href = `/reservaciones/nueva?espacio=${espacio.id}`;
   };
-
-  // Extraer tipos únicos
-  const tiposUnicos = Array.from(new Set(espacios.map(e => e.tipo_nombre).filter(Boolean)));
 
   // Aplicar filtros
   const espaciosFiltrados = espacios.filter(e => {
@@ -73,7 +75,7 @@ const Espacios = () => {
       </div>
 
       <FiltroEspacios
-        tipos={tiposUnicos}
+        tipos={tiposEspacio}
         onFilterChange={handleFilterChange}
       />
 

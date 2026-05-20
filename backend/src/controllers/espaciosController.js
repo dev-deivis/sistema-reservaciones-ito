@@ -166,4 +166,15 @@ const obtenerRecursosDeEspacio = async (req, res, next) => {
   }
 };
 
-module.exports = { listarEspacios, obtenerEspacio, crearEspacio, actualizarEspacio, eliminarEspacio, obtenerRecursosDeEspacio };
+const getTiposEspacio = async (req, res, next) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, nombre, descripcion FROM tipo_espacio ORDER BY nombre'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { listarEspacios, obtenerEspacio, crearEspacio, actualizarEspacio, eliminarEspacio, obtenerRecursosDeEspacio, getTiposEspacio };
