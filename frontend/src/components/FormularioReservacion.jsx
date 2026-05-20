@@ -81,7 +81,7 @@ export default function FormularioReservacion({ onSuccess }) {
       await api.post("/reservaciones", form);
       onSuccess();
     } catch (err) {
-      setError(err.response?.data?.mensaje || "Error al crear la reservación.");
+      setError(err.response?.data?.error || "Error al crear la reservación.");
     } finally {
       setEnviando(false);
     }
@@ -218,7 +218,7 @@ export default function FormularioReservacion({ onSuccess }) {
                 {espacioSeleccionado.nombre}
               </p>
               <p style={{ fontSize: "14px", color: "#6b7280", margin: "0 0 4px 0" }}>
-                Tipo: {espacioSeleccionado.tipo}
+                Tipo: {espacioSeleccionado.tipo_nombre}
               </p>
               {espacioSeleccionado.capacidad && (
                 <p style={{ fontSize: "14px", color: "#6b7280", margin: "0 0 4px 0" }}>
