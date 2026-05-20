@@ -19,20 +19,10 @@ const GestionEspacios = () => {
   useEffect(() => {
     Promise.all([
       api.get('/espacios'),
-      api.get('/tipos-espacio').catch(() => ({ data: [] })),
+      api.get('/espacios/tipos'),
     ]).then(([resE, resT]) => {
       setEspacios(resE.data);
-      if (resT.data.length > 0) {
-        setTipos(resT.data);
-      } else {
-        // Si no existe el endpoint, extraemos tipos únicos de los espacios
-        const tiposUnicos = [...new Map(
-          resE.data
-            .filter(e => e.tipo_espacio_id)
-            .map(e => [e.tipo_espacio_id, { id: e.tipo_espacio_id, nombre: e.tipo_nombre || e.tipo || 'General' }])
-        ).values()];
-        setTipos(tiposUnicos);
-      }
+      setTipos(resT.data);
     }).finally(() => setCargando(false));
   }, []);
 
