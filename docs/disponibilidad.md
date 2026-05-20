@@ -188,6 +188,54 @@ Content-Type: application/json
 
 ---
 
+### 3. GET `/espacios`
+
+Devuelve todos los espacios del sistema junto con un indicador de disponibilidad para el rango de fechas consultado.
+
+#### Parámetros
+
+| Tipo | Nombre | Requerido | Descripción |
+|------|--------|-----------|-------------|
+| Query param | `fecha_inicio` | Sí | Inicio del rango en formato ISO 8601: `YYYY-MM-DDTHH:MM:SS` |
+| Query param | `fecha_fin` | Sí | Fin del rango en formato ISO 8601: `YYYY-MM-DDTHH:MM:SS` |
+
+#### Ejemplo de request
+
+```
+GET /api/disponibilidad/espacios?fecha_inicio=2026-05-10T09:00:00&fecha_fin=2026-05-10T11:00:00
+Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+```
+
+#### Response exitoso `200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "nombre": "Aula 101",
+    "tipo_nombre": "Aula",
+    "disponible": true
+  },
+  {
+    "id": 3,
+    "nombre": "Lab Computo 1",
+    "tipo_nombre": "Laboratorio",
+    "disponible": false
+  }
+]
+```
+
+#### Responses de error
+
+| Código | Motivo | Cuerpo |
+|--------|--------|--------|
+| `400` | Faltan query params | `{ "error": "fecha_inicio y fecha_fin son requeridos" }` |
+| `400` | `fecha_inicio >= fecha_fin` | `{ "error": "fecha_inicio debe ser anterior a fecha_fin" }` |
+| `401` | Token ausente | `{ "error": "Token de acceso requerido" }` |
+| `403` | Token inválido o expirado | `{ "error": "Token inválido o expirado" }` |
+
+---
+
 ## Notas de implementación
 
 - **`OVERLAPS`** — Se usa el operador nativo de PostgreSQL `(fecha_inicio, fecha_fin) OVERLAPS ($1, $2)` en lugar de comparaciones manuales. Cubre todos los casos de solapamiento: reservación contenida, que envuelve al rango, que empieza antes y termina dentro, etc.
