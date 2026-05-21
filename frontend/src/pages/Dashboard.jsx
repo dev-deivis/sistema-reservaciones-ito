@@ -40,11 +40,6 @@ const IconArrow = () => (
     <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
   </svg>
 );
-const IconTrend = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
-  </svg>
-);
 const IconShield = () => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -104,11 +99,36 @@ const hoy = () => new Date().toLocaleDateString('es-MX', {
   weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
 }).replace(/^\w/, c => c.toUpperCase());
 
+const calcularTendencia = (reservaciones) => {
+  const ahora = new Date();
+  const mesActual = ahora.getMonth();
+  const anioActual = ahora.getFullYear();
+  const mesAnterior = mesActual === 0 ? 11 : mesActual - 1;
+  const anioAnterior = mesActual === 0 ? anioActual - 1 : anioActual;
+
+  const deEsteMes = reservaciones.filter(r => {
+    const d = new Date(r.created_at);
+    return d.getMonth() === mesActual && d.getFullYear() === anioActual;
+  }).length;
+
+  const delMesAnterior = reservaciones.filter(r => {
+    const d = new Date(r.created_at);
+    return d.getMonth() === mesAnterior && d.getFullYear() === anioAnterior;
+  }).length;
+
+  if (delMesAnterior === 0) return null;
+
+  const cambio = ((deEsteMes - delMesAnterior) / delMesAnterior) * 100;
+  return { valor: Math.abs(Math.round(cambio)), positiva: cambio >= 0 };
+};
+
 // ── Componente principal ──────────────────────────────────
 const Dashboard = () => {
   const { usuario } = useAuth();
   const [stats, setStats] = useState({
-    total: 0, activas: 0, notificaciones: 0, espacios: 0,
+    total: 0, activas: 0, notificaciones: 0,
+    espaciosDisponibles: 0, espaciosTotal: 0,
+    tendenciaTotal: null,
   });
   const [proximas, setProximas] = useState([]);
   const [actividad, setActividad] = useState([]);
@@ -140,12 +160,15 @@ const Dashboard = () => {
 
       const activas = reservaciones.filter(r => r.estado === 'pendiente' || r.estado === 'confirmada').length;
       const noLeidas = notificaciones.filter(n => !n.leida).length;
+      const espaciosDisponibles = espacios.filter(e => e.activo !== false).length;
 
       setStats({
         total: reservaciones.length,
         activas,
         notificaciones: noLeidas,
-        espacios: espacios.length,
+        espaciosDisponibles,
+        espaciosTotal: espacios.length,
+        tendenciaTotal: calcularTendencia(reservaciones),
       });
 
       const prox = reservaciones
@@ -230,19 +253,43 @@ const Dashboard = () => {
       {/* ── Tarjetas estadísticas ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '24px' }}>
         {[
-          { icon: <IconCal />, bg: '#fee2e2', num: stats.total, label: 'Total de reservaciones', trend: '+12%' },
-          { icon: <IconCheck />, bg: '#dcfce7', num: stats.activas, label: 'Reservaciones activas', trend: '+5%' },
-          { icon: <IconBell />, bg: '#fef3c7', num: stats.notificaciones, label: 'Notificaciones sin leer', trend: null },
-          { icon: <IconBuilding />, bg: '#ede9fe', num: stats.espacios, label: 'Espacios disponibles', trend: '+2' },
-        ].map(({ icon, bg, num, label, trend }, i) => (
+          {
+            icon: <IconCal />, bg: '#fee2e2',
+            num: stats.total,
+            label: 'Total de reservaciones',
+            tendencia: stats.tendenciaTotal,
+          },
+          {
+            icon: <IconCheck />, bg: '#dcfce7',
+            num: stats.activas,
+            label: 'Reservaciones activas',
+            tendencia: null,
+          },
+          {
+            icon: <IconBell />, bg: '#fef3c7',
+            num: stats.notificaciones,
+            label: 'Notificaciones sin leer',
+            tendencia: null,
+          },
+          {
+            icon: <IconBuilding />, bg: '#ede9fe',
+            num: `${stats.espaciosDisponibles} de ${stats.espaciosTotal}`,
+            label: 'Espacios disponibles',
+            tendencia: null,
+          },
+        ].map(({ icon, bg, num, label, tendencia }, i) => (
           <div key={i} style={{
             background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb',
             padding: '24px', position: 'relative', boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
           }}>
-            {trend && (
-              <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <IconTrend />
-                <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: '600' }}>{trend}</span>
+            {tendencia && (
+              <div style={{ position: 'absolute', top: '16px', right: '16px' }}>
+                <span style={{
+                  fontSize: '13px', fontWeight: '600',
+                  color: tendencia.positiva ? '#16a34a' : '#dc2626',
+                }}>
+                  {tendencia.positiva ? '↑' : '↓'} {tendencia.valor}%
+                </span>
               </div>
             )}
             <div style={{
