@@ -49,7 +49,7 @@ const crearReservacion = async (req, res, next) => {
 
     const result = await pool.query(
       `INSERT INTO reservaciones (usuario_id, espacio_id, fecha_inicio, fecha_fin, estado, motivo)
-       VALUES ($1, $2, $3, $4, 'pendiente', $5) RETURNING *`,
+       VALUES ($1, $2, $3, $4, 'confirmada', $5) RETURNING *`,
       [usuario_id, espacio_id, fecha_inicio, fecha_fin, motivo]
     );
 
@@ -60,7 +60,7 @@ const crearReservacion = async (req, res, next) => {
       usuario_id,
       reservacion_id: reservacion.id,
       tipo: 'confirmacion',
-      mensaje: `Tu reservación para el ${fecha_inicio} fue creada y está pendiente de aprobación`,
+      mensaje: `Tu reservación para el ${fecha_inicio} fue confirmada exitosamente`,
     });
 
     // Registrar en historial
