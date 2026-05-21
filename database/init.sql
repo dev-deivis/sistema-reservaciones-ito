@@ -85,3 +85,10 @@ CREATE INDEX IF NOT EXISTS idx_reservaciones_espacio ON reservaciones(espacio_id
 CREATE INDEX IF NOT EXISTS idx_reservaciones_usuario ON reservaciones(usuario_id);
 CREATE INDEX IF NOT EXISTS idx_reservaciones_fechas ON reservaciones(fecha_inicio, fecha_fin);
 CREATE INDEX IF NOT EXISTS idx_notificaciones_usuario ON notificaciones(usuario_id);
+
+-- Migraciones aplicadas al schema inicial
+-- 001_add_activo_usuarios
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS activo BOOLEAN DEFAULT true;
+
+-- 002_add_tipo_usuarios
+ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS tipo VARCHAR(20) DEFAULT 'estudiante';

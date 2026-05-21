@@ -1,51 +1,57 @@
 import React from 'react';
+import useWindowSize from '../hooks/useWindowSize';
 
 const FiltroEspacios = ({ tipos, onFilterChange }) => {
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+
   return (
     <div style={{
       display: 'flex',
-      gap: '1rem',
-      marginBottom: '1.5rem',
-      flexWrap: 'wrap',
-      alignItems: 'center'
+      flexDirection: isMobile ? 'column' : 'row',
+      gap: '0.8rem',
+      marginBottom: '1.2rem',
+      alignItems: isMobile ? 'stretch' : 'center',
     }}>
-      <div style={{ flex: '1', minWidth: '250px', position: 'relative' }}>
+      <div style={{ flex: isMobile ? 'none' : 1, position: 'relative' }}>
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}>
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input 
-          type="text" 
-          placeholder="Buscar por nombre..." 
+        <input
+          type="text"
+          placeholder="Buscar por nombre..."
           onChange={(e) => onFilterChange('busqueda', e.target.value)}
           style={{
             width: '100%',
             padding: '0.8rem 0.8rem 0.8rem 2.8rem',
             border: '1px solid #e0e0e0',
             borderRadius: '8px',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             outline: 'none',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+            boxSizing: 'border-box',
           }}
         />
       </div>
 
-      <div style={{ display: 'flex', gap: '0.8rem' }}>
-        <select 
+      <div style={{ display: 'flex', gap: '0.8rem', flexDirection: isMobile ? 'column' : 'row' }}>
+        <select
           onChange={(e) => onFilterChange('tipo', e.target.value)}
           style={{
             padding: '0.8rem 2.5rem 0.8rem 1.2rem',
             border: '1px solid #e0e0e0',
             borderRadius: '8px',
             backgroundColor: 'white',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             cursor: 'pointer',
             outline: 'none',
             appearance: 'none',
             backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>')`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'right 0.8rem center',
-            backgroundSize: '1.2rem'
+            backgroundSize: '1.2rem',
+            width: isMobile ? '100%' : 'auto',
           }}
         >
           <option value="">Todos los tipos</option>
@@ -54,21 +60,22 @@ const FiltroEspacios = ({ tipos, onFilterChange }) => {
           ))}
         </select>
 
-        <select 
+        <select
           onChange={(e) => onFilterChange('estado', e.target.value)}
           style={{
             padding: '0.8rem 2.5rem 0.8rem 1.2rem',
             border: '1px solid #e0e0e0',
             borderRadius: '8px',
             backgroundColor: 'white',
-            fontSize: '1rem',
+            fontSize: '0.95rem',
             cursor: 'pointer',
             outline: 'none',
             appearance: 'none',
             backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>')`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'right 0.7rem center',
-            backgroundSize: '1rem'
+            backgroundSize: '1rem',
+            width: isMobile ? '100%' : 'auto',
           }}
         >
           <option value="">Todos los estados</option>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import api from "../api/axios";
+import useWindowSize from "../hooks/useWindowSize";
 
 // Slots de media hora de 7:00 a 20:00
 const HORAS = [];
@@ -89,6 +90,8 @@ const IconCheck = () => (
 
 export default function FormularioReservacion({ onSuccess }) {
   const [searchParams] = useSearchParams();
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
   const [espacios, setEspacios] = useState([]);
   const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
   const [form, setForm] = useState(() => {
@@ -242,7 +245,7 @@ export default function FormularioReservacion({ onSuccess }) {
   const inputDisabled = { ...inputStyle, background: "#f9fafb", color: "#9ca3af", cursor: "not-allowed" };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "20px", alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 380px", gap: "20px", alignItems: "start" }}>
 
       {/* ── Columna izquierda: formulario ── */}
       <div style={{ background: "white", borderRadius: "14px", border: "1.5px solid #e5e7eb", padding: "28px", display: "flex", flexDirection: "column", gap: "20px" }}>

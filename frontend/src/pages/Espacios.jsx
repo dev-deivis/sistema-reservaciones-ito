@@ -4,21 +4,21 @@ import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import FiltroEspacios from '../components/FiltroEspacios';
 import EspacioCard from '../components/EspacioCard';
+import useWindowSize from '../hooks/useWindowSize';
 
 const Espacios = () => {
   const { usuario } = useAuth();
   const navigate = useNavigate();
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+  const isTablet = width >= 768 && width < 1024;
+
   const [espacios, setEspacios] = useState([]);
   const [tiposEspacio, setTiposEspacio] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
-  // Estados para filtros
-  const [filtros, setFiltros] = useState({
-    busqueda: '',
-    tipo: '',
-    estado: ''
-  });
+  const [filtros, setFiltros] = useState({ busqueda: '', tipo: '', estado: '' });
 
   useEffect(() => {
     Promise.all([
@@ -44,7 +44,6 @@ const Espacios = () => {
     setEspacios(prev => prev.filter(e => e.id !== id));
   };
 
-  // Aplicar filtros
   const espaciosFiltrados = espacios.filter(e => {
     const matchBusqueda = e.nombre?.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
       e.ubicacion?.toLowerCase().includes(filtros.busqueda.toLowerCase());
@@ -55,8 +54,10 @@ const Espacios = () => {
 
   if (cargando) return <p style={{ padding: '2rem' }}>Cargando espacios...</p>;
 
+  const gridCols = isMobile ? '1fr' : isTablet ? '1fr 1fr' : 'repeat(auto-fill, minmax(320px, 1fr))';
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem 0' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: isMobile ? '12px' : '1rem 0', boxSizing: 'border-box' }}>
       {error && (
         <div style={{
           background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px',
@@ -72,31 +73,23 @@ const Espacios = () => {
       )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '1.8rem', color: '#111827' }}>Espacios disponibles</h2>
-          <p style={{ color: '#6b7280', margin: '0.2rem 0 1.5rem 0' }}>Explora y reserva los espacios del Instituto</p>
+          <h2 style={{ margin: 0, fontSize: isMobile ? '1.4rem' : '1.8rem', color: '#111827' }}>Espacios disponibles</h2>
+          <p style={{ color: '#6b7280', margin: '0.2rem 0 1rem 0', fontSize: isMobile ? '13px' : '14px' }}>Explora y reserva los espacios del Instituto</p>
         </div>
-
       </div>
 
-      <FiltroEspacios
-        tipos={tiposEspacio}
-        onFilterChange={handleFilterChange}
-      />
+      <FiltroEspacios tipos={tiposEspacio} onFilterChange={handleFilterChange} />
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-        gap: '1.5rem'
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: gridCols, gap: '1rem' }}>
         {espaciosFiltrados.map((e) => (
           <EspacioCard key={e.id} espacio={e} onReservar={handleReservar} onEliminar={handleEliminar} />
         ))}
       </div>
 
       {espaciosFiltrados.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '3rem', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
+        <div style={{ textAlign: 'center', padding: '2rem', backgroundColor: 'white', borderRadius: '12px', border: '1px solid #f3f4f6' }}>
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ margin: '0 auto 1rem auto', display: 'block' }}><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <p style={{ color: '#6b7280', fontSize: '1.1rem' }}>No se encontraron espacios que coincidan con los filtros.</p>
+          <p style={{ color: '#6b7280', fontSize: '1rem' }}>No se encontraron espacios que coincidan con los filtros.</p>
         </div>
       )}
     </div>

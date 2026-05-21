@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: reservaciones-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: reservaciones_ito
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d reservaciones_ito"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: reservaciones-backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: reservaciones_ito
+      DB_USER: admin
+      DB_PASSWORD: admin123
+      JWT_SECRET: gari3000
+      JWT_EXPIRES_IN: 24h
+      PORT: 3000
+      NOTIF_SERVICE_URL: http://notificaciones:3001
+      INTERNAL_API_KEY: secret_key_interna
+    restart: unless-stopped
+
+  notificaciones:
+    build: ./notificaciones-service
+    container_name: reservaciones-notificaciones
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: reservaciones_ito
+      DB_USER: admin
+      DB_PASSWORD: admin123
+      PORT: 3001
+      INTERNAL_API_KEY: secret_key_interna
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: reservaciones-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

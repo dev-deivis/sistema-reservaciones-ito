@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
+import useWindowSize from '../hooks/useWindowSize';
 
 const Notificaciones = () => {
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
   const [notificaciones, setNotificaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
 
@@ -41,7 +44,7 @@ const Notificaciones = () => {
   const unreadCount = notificaciones.filter(n => !n.leida).length;
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: isMobile ? '16px' : '2rem 1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '1rem', margin: 0 }}>
           Todas las Notificaciones
