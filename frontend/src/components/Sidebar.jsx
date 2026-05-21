@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -75,6 +76,17 @@ const Sidebar = () => {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [noLeidas, setNoLeidas] = useState(0);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    fetch('/api/notificaciones/no-leidas', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(data => setNoLeidas(data.count ?? data ?? 0))
+      .catch(() => setNoLeidas(0));
+  }, [location]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -173,12 +185,12 @@ const Sidebar = () => {
                 {icon}
               </div>
               <span style={{ flex: 1 }}>{label}</span>
-              {badge && !active && (
+              {badge && !active && noLeidas > 0 && (
                 <span style={{
                   background: '#a91d00', color: 'white', borderRadius: '12px',
                   padding: '2px 8px', fontSize: '12px', fontWeight: '700',
                   minWidth: '24px', textAlign: 'center'
-                }}>3</span>
+                }}>{noLeidas}</span>
               )}
             </Link>
           );

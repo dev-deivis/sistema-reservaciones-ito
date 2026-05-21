@@ -1,6 +1,33 @@
 import { useState, useEffect } from "react";
 import api from "../api/axios";
 
+// Slots de media hora de 7:00 a 20:00
+const HORAS = [];
+for (let h = 7; h <= 20; h++) {
+  HORAS.push(`${String(h).padStart(2, "0")}:00`);
+  if (h < 20) HORAS.push(`${String(h).padStart(2, "0")}:30`);
+}
+
+const formatHora = (h) => {
+  const [hh, mm] = h.split(":").map(Number);
+  const periodo = hh < 12 ? "AM" : "PM";
+  const h12 = hh === 0 ? 12 : hh > 12 ? hh - 12 : hh;
+  return `${h12}:${String(mm).padStart(2, "0")} ${periodo}`;
+};
+
+const esFinDeSemana = (fechaStr) => {
+  if (!fechaStr) return false;
+  const [y, m, d] = fechaStr.split("-").map(Number);
+  const dia = new Date(y, m - 1, d).getDay();
+  return dia === 0 || dia === 6;
+};
+
+const hoy = (() => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+})();
+
+// ── Íconos ──────────────────────────────────────────────
 const IconCalendario = () => (
   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -11,7 +38,7 @@ const IconCalendario = () => (
 );
 
 const IconCalBtn = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: "8px", flexShrink: 0}}>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px", flexShrink: 0 }}>
     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
     <line x1="16" y1="2" x2="16" y2="6"/>
     <line x1="8" y1="2" x2="8" y2="6"/>
@@ -20,7 +47,7 @@ const IconCalBtn = () => (
 );
 
 const IconCheck = () => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: "8px", flexShrink: 0}}>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px", flexShrink: 0 }}>
     <polyline points="20 6 9 17 4 12"/>
   </svg>
 );
@@ -30,10 +57,12 @@ export default function FormularioReservacion({ onSuccess }) {
   const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
   const [form, setForm] = useState({
     espacio_id: "",
-    fecha_inicio: "",
-    fecha_fin: "",
+    fecha: "",
+    hora_inicio: "",
+    hora_fin: "",
     motivo: "",
   });
+  const [errFecha, setErrFecha] = useState("");
   const [disponibilidad, setDisponibilidad] = useState(null);
   const [verificando, setVerificando] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -41,30 +70,68 @@ export default function FormularioReservacion({ onSuccess }) {
 
   useEffect(() => {
     api.get("/espacios").then((res) => setEspacios(res.data));
+
+    // Pre-seleccionar espacio si viene por query param
+    const params = new URLSearchParams(window.location.search);
+    const espacioId = params.get("espacio");
+    if (espacioId) setForm((p) => ({ ...p, espacio_id: espacioId }));
   }, []);
+
+  // Sincronizar espacioSeleccionado cuando cambia espacios o espacio_id inicial
+  useEffect(() => {
+    if (form.espacio_id && espacios.length > 0) {
+      const esp = espacios.find((e) => String(e.id) === String(form.espacio_id));
+      setEspacioSeleccionado(esp || null);
+    }
+  }, [espacios, form.espacio_id]);
+
+  const getFechaInicio = () =>
+    form.fecha && form.hora_inicio ? `${form.fecha}T${form.hora_inicio}:00` : "";
+  const getFechaFin = () =>
+    form.fecha && form.hora_fin ? `${form.fecha}T${form.hora_fin}:00` : "";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
     setDisponibilidad(null);
+    setError("");
+
+    if (name === "fecha") {
+      const esDS = esFinDeSemana(value);
+      setErrFecha(esDS ? "Solo se permiten reservaciones de lunes a viernes." : "");
+      setForm((p) => ({ ...p, fecha: value, hora_inicio: "", hora_fin: "" }));
+      return;
+    }
+
+    if (name === "hora_inicio") {
+      setForm((p) => ({ ...p, hora_inicio: value, hora_fin: "" }));
+      return;
+    }
+
     if (name === "espacio_id") {
       const esp = espacios.find((es) => String(es.id) === String(value));
       setEspacioSeleccionado(esp || null);
     }
+
+    setForm((p) => ({ ...p, [name]: value }));
   };
+
+  // Opciones de hora fin: todas las mayores a hora_inicio
+  const horasInicio = HORAS.slice(0, -1); // no puede empezar a las 20:00
+  const horasFin = form.hora_inicio ? HORAS.filter((h) => h > form.hora_inicio) : [];
 
   const verificarDisponibilidad = async () => {
     setError("");
-    if (!form.espacio_id || !form.fecha_inicio || !form.fecha_fin) {
-      setError("Selecciona el espacio y las fechas antes de verificar.");
+    if (!form.espacio_id || !form.fecha || !form.hora_inicio || !form.hora_fin) {
+      setError("Completa el espacio, la fecha y el horario antes de verificar.");
       return;
     }
+    if (errFecha) { setError(errFecha); return; }
     setVerificando(true);
     try {
       const res = await api.post("/disponibilidad/verificar", {
         espacioId: form.espacio_id,
-        fecha_inicio: form.fecha_inicio,
-        fecha_fin: form.fecha_fin,
+        fecha_inicio: getFechaInicio(),
+        fecha_fin: getFechaFin(),
       });
       setDisponibilidad(res.data.disponible);
     } catch {
@@ -78,7 +145,12 @@ export default function FormularioReservacion({ onSuccess }) {
     setError("");
     setEnviando(true);
     try {
-      await api.post("/reservaciones", form);
+      await api.post("/reservaciones", {
+        espacio_id: form.espacio_id,
+        fecha_inicio: getFechaInicio(),
+        fecha_fin: getFechaFin(),
+        motivo: form.motivo,
+      });
       onSuccess();
     } catch (err) {
       setError(err.response?.data?.error || "Error al crear la reservación.");
@@ -86,6 +158,16 @@ export default function FormularioReservacion({ onSuccess }) {
       setEnviando(false);
     }
   };
+
+  // Resumen legible del horario elegido
+  const resumenHorario = (() => {
+    if (!form.fecha || !form.hora_inicio || !form.hora_fin) return null;
+    const [y, m, d] = form.fecha.split("-").map(Number);
+    const fecha = new Date(y, m - 1, d);
+    const nombreDia = fecha.toLocaleDateString("es-MX", { weekday: "long" });
+    const nombreFecha = fecha.toLocaleDateString("es-MX", { day: "numeric", month: "long" });
+    return `${nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1)} ${nombreFecha} · ${formatHora(form.hora_inicio)} – ${formatHora(form.hora_fin)}`;
+  })();
 
   const inputStyle = {
     width: "100%",
@@ -100,6 +182,8 @@ export default function FormularioReservacion({ onSuccess }) {
     fontFamily: "inherit",
     transition: "border-color 0.2s",
   };
+
+  const inputDisabled = { ...inputStyle, background: "#f9fafb", color: "#9ca3af", cursor: "not-allowed" };
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "20px", alignItems: "start" }}>
@@ -120,38 +204,108 @@ export default function FormularioReservacion({ onSuccess }) {
           </select>
         </div>
 
-        {/* Fecha inicio */}
+        {/* Fecha */}
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           <label style={{ fontSize: "14px", fontWeight: "600", color: "#111827" }}>
-            Fecha y hora de inicio <span style={{ color: "#b91c1c" }}>*</span>
+            Fecha <span style={{ color: "#b91c1c" }}>*</span>
           </label>
-          <input type="datetime-local" name="fecha_inicio" value={form.fecha_inicio} onChange={handleChange} style={inputStyle} />
+          <input
+            type="date"
+            name="fecha"
+            value={form.fecha}
+            onChange={handleChange}
+            min={hoy}
+            style={errFecha ? { ...inputStyle, borderColor: "#f87171" } : inputStyle}
+          />
+          {errFecha && (
+            <p style={{ margin: "2px 0 0", fontSize: "13px", color: "#b91c1c", display: "flex", alignItems: "center", gap: "5px" }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              {errFecha}
+            </p>
+          )}
+          {!errFecha && !form.fecha && (
+            <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#9ca3af" }}>
+              Solo lunes a viernes · Horario 7:00 AM – 8:00 PM
+            </p>
+          )}
         </div>
 
-        {/* Fecha fin */}
+        {/* Horario */}
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           <label style={{ fontSize: "14px", fontWeight: "600", color: "#111827" }}>
-            Fecha y hora de fin <span style={{ color: "#b91c1c" }}>*</span>
+            Horario <span style={{ color: "#b91c1c" }}>*</span>
           </label>
-          <input type="datetime-local" name="fecha_fin" value={form.fecha_fin} onChange={handleChange} style={inputStyle} />
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+              <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "500" }}>Inicio</span>
+              <select
+                name="hora_inicio"
+                value={form.hora_inicio}
+                onChange={handleChange}
+                style={!form.fecha || errFecha ? inputDisabled : inputStyle}
+                disabled={!form.fecha || !!errFecha}
+              >
+                <option value="">-- Selecciona --</option>
+                {horasInicio.map((h) => (
+                  <option key={h} value={h}>{formatHora(h)}</option>
+                ))}
+              </select>
+            </div>
+
+            <span style={{ color: "#9ca3af", fontSize: "18px", marginTop: "18px", flexShrink: 0 }}>→</span>
+
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+              <span style={{ fontSize: "12px", color: "#6b7280", fontWeight: "500" }}>Fin</span>
+              <select
+                name="hora_fin"
+                value={form.hora_fin}
+                onChange={handleChange}
+                style={!form.hora_inicio ? inputDisabled : inputStyle}
+                disabled={!form.hora_inicio}
+              >
+                <option value="">-- Selecciona --</option>
+                {horasFin.map((h) => (
+                  <option key={h} value={h}>{formatHora(h)}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Resumen legible */}
+          {resumenHorario && (
+            <div style={{
+              marginTop: "6px", padding: "9px 14px", borderRadius: "8px",
+              background: "#f0fdf4", border: "1px solid #bbf7d0",
+              fontSize: "13px", fontWeight: "600", color: "#15803d",
+              display: "flex", alignItems: "center", gap: "7px",
+            }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+              {resumenHorario}
+            </div>
+          )}
         </div>
 
         {/* Motivo */}
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           <label style={{ fontSize: "14px", fontWeight: "600", color: "#111827" }}>
-            Motivo de la reservacion <span style={{ fontSize: "13px", fontWeight: "400", color: "#6b7280" }}>(opcional)</span>
+            Motivo de la reservacion{" "}
+            <span style={{ fontSize: "13px", fontWeight: "400", color: "#6b7280" }}>(opcional)</span>
           </label>
           <textarea
             name="motivo"
             value={form.motivo}
             onChange={handleChange}
-            rows={4}
-            placeholder="Describe el proposito de la reservacion..."
+            rows={3}
+            placeholder="Describe el propósito de la reservación..."
             style={{ ...inputStyle, resize: "vertical" }}
           />
         </div>
 
-        {/* Mensajes de disponibilidad */}
+        {/* Mensajes */}
         {error && (
           <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px 14px", color: "#b91c1c", fontSize: "14px" }}>
             {error}
@@ -250,22 +404,38 @@ export default function FormularioReservacion({ onSuccess }) {
           </p>
           {[
             "Selecciona el espacio que deseas reservar",
-            "Indica la fecha y hora de inicio y fin",
+            "Elige la fecha (lunes a viernes) y el horario de 7:00 AM a 8:00 PM",
             "Verifica la disponibilidad del espacio",
-            "Confirma tu reservacion",
+            "Confirma tu reservación",
           ].map((texto, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: i < 3 ? "12px" : "0" }}>
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: i < 3 ? "12px" : "0" }}>
               <div style={{
                 background: "#fee2e2", color: "#b91c1c",
                 borderRadius: "50%", width: "26px", height: "26px",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: "12px", fontWeight: "700", flexShrink: 0,
+                fontSize: "12px", fontWeight: "700", flexShrink: 0, marginTop: "1px",
               }}>
                 {i + 1}
               </div>
-              <span style={{ fontSize: "14px", color: "#374151" }}>{texto}</span>
+              <span style={{ fontSize: "14px", color: "#374151", lineHeight: "1.5" }}>{texto}</span>
             </div>
           ))}
+        </div>
+
+        {/* Panel restricciones */}
+        <div style={{ background: "#fffbeb", borderRadius: "14px", border: "1.5px solid #fde68a", padding: "20px" }}>
+          <p style={{ fontWeight: "700", fontSize: "14px", color: "#92400e", margin: "0 0 10px 0", display: "flex", alignItems: "center", gap: "6px" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Restricciones
+          </p>
+          <ul style={{ margin: 0, padding: "0 0 0 16px", fontSize: "13px", color: "#78350f", lineHeight: "1.8" }}>
+            <li>Solo días hábiles: lunes a viernes</li>
+            <li>Horario permitido: 7:00 AM – 8:00 PM</li>
+            <li>La hora de fin debe ser posterior a la de inicio</li>
+          </ul>
         </div>
       </div>
     </div>
