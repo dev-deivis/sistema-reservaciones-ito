@@ -30,6 +30,10 @@ const validarHorarioReservacion = (fecha_inicio, fecha_fin) => {
     return { status: 400, error: 'La reservación no puede durar más de 8 horas' };
   }
 
+  if (inicio <= new Date()) {
+    return { status: 400, error: 'No se pueden hacer reservaciones en una fecha u hora que ya pasó' };
+  }
+
   return null;
 };
 
