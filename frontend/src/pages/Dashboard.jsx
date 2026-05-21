@@ -412,7 +412,7 @@ const Dashboard = () => {
                     {n.mensaje}
                   </p>
                   <p style={{ margin: 0, fontSize: '12px', color: '#9ca3af' }}>
-                    {fechaCorta(n.creado_en || n.created_at).toLowerCase()}
+                    {fechaCorta(n.created_at).toLowerCase()}
                   </p>
                 </div>
                 {!n.leida && (

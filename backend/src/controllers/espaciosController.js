@@ -52,27 +52,17 @@ const crearEspacio = async (req, res, next) => {
   try {
     const { nombre, capacidad, ubicacion, estado, tipo_espacio_id } = req.body;
 
-    if  ( !nombre || !capacidad || !tipo_espacio_id ) {
-       return res.status(400).json({ 
-        error: 'Nombre, capacidad y tipo_espacio_id son requeridos'
-       });
+    if (!nombre || !capacidad || !tipo_espacio_id) {
+      return res.status(400).json({ error: 'Nombre, capacidad y tipo_espacio_id son requeridos' });
     }
-      if (isNaN(capacidad)) {
-  return res.status(400).json({
-    error: 'La capacidad debe ser un número'
-  });
-  }
-    if(capacidad <= 0){
-      return res.status(400).json({ error: 'La capacidad debe ser un número positivo' });
+    const cap = Number(capacidad);
+    if (isNaN(cap) || cap < 1 || cap > 500) {
+      return res.status(400).json({ error: 'La capacidad debe ser un número entre 1 y 500' });
     }
-     if(capacidad > 50){
-      return res.status(400).json({ error: 'La capacidad no puede exceder 50' }) ; 
-    }
-  
 
     const result = await pool.query(
       'INSERT INTO espacios (nombre, capacidad, ubicacion, estado, tipo_espacio_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [nombre, capacidad, ubicacion, estado || 'disponible', tipo_espacio_id]
+      [nombre, cap, ubicacion, estado || 'disponible', tipo_espacio_id]
     );
 
     res.status(201).json(result.rows[0]);
@@ -84,17 +74,15 @@ const crearEspacio = async (req, res, next) => {
 const actualizarEspacio = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { nombre, capacidad, ubicacion, estado, tipo_espacio_id } = req.body;
+    let { nombre, capacidad, ubicacion, estado, tipo_espacio_id } = req.body;
 
     if (capacidad !== undefined && capacidad !== null) {
-      if (isNaN(capacidad) || capacidad < 1) {
-        return res.status(400).json({ error: 'La capacidad debe ser un número positivo' });
+      const cap = Number(capacidad);
+      if (isNaN(cap) || cap < 1 || cap > 500) {
+        return res.status(400).json({ error: 'La capacidad debe ser un número entre 1 y 500' });
       }
-      if (capacidad > 500) {
-        return res.status(400).json({ error: 'La capacidad no puede exceder 500' });
-      }
+      capacidad = cap;
     }
-
 
     const result = await pool.query(
       `UPDATE espacios SET
