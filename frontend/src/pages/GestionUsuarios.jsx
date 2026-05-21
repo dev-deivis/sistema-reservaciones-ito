@@ -53,6 +53,18 @@ const IconEdit = () => (
     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
   </svg>
 );
+const IconCheck = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12"/>
+  </svg>
+);
+const IconAlerta = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+);
 
 // ── Estilos reutilizables ────────────────────────────────
 const styles = {
@@ -243,6 +255,13 @@ const GestionUsuarios = () => {
   const [error, setError] = useState('');
   const [usuarioEditando, setUsuarioEditando] = useState(null);
   const [errorEditar, setErrorEditar] = useState('');
+  const [confirmacion, setConfirmacion] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const mostrarToast = (tipo, mensaje) => {
+    setToast({ tipo, mensaje });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const cargarUsuarios = async () => {
     setCargando(true);
@@ -266,30 +285,44 @@ const GestionUsuarios = () => {
     try {
       const res = await api.patch(`/usuarios/${usuario.id}/activo`);
       setUsuarios(prev => prev.map(u => u.id === usuario.id ? { ...u, activo: res.data.activo } : u));
+      mostrarToast('exito', `Cuenta ${res.data.activo ? 'activada' : 'desactivada'} correctamente`);
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al cambiar estado');
+      mostrarToast('error', err.response?.data?.error || 'Error al cambiar estado');
     }
   };
 
-  const handleCambiarRol = async (usuario) => {
+  const handleCambiarRol = (usuario) => {
     const nuevoRol = usuario.rol === 'admin' ? 'usuario' : 'admin';
-    if (!confirm(`¿Cambiar rol de "${usuario.nombre}" a ${nuevoRol}?`)) return;
-    try {
-      const res = await api.put(`/usuarios/${usuario.id}`, { rol: nuevoRol });
-      setUsuarios(prev => prev.map(u => u.id === usuario.id ? { ...u, rol: res.data.rol } : u));
-    } catch (err) {
-      alert(err.response?.data?.error || 'Error al cambiar rol');
-    }
+    setConfirmacion({
+      titulo: 'Cambiar rol',
+      mensaje: `¿Cambiar el rol de "${usuario.nombre}" a ${nuevoRol === 'admin' ? 'Administrador' : 'Usuario'}?`,
+      onConfirmar: async () => {
+        try {
+          const res = await api.put(`/usuarios/${usuario.id}`, { rol: nuevoRol });
+          setUsuarios(prev => prev.map(u => u.id === usuario.id ? { ...u, rol: res.data.rol } : u));
+          mostrarToast('exito', 'Rol actualizado correctamente');
+        } catch (err) {
+          mostrarToast('error', err.response?.data?.error || 'Error al cambiar rol');
+        }
+      },
+    });
   };
 
-  const handleEliminar = async (usuario) => {
-    if (!confirm(`¿Eliminar a "${usuario.nombre}"? Esta acción no se puede deshacer.`)) return;
-    try {
-      await api.delete(`/usuarios/${usuario.id}`);
-      setUsuarios(prev => prev.filter(u => u.id !== usuario.id));
-    } catch (err) {
-      alert(err.response?.data?.error || 'Error al eliminar usuario');
-    }
+  const handleEliminar = (usuario) => {
+    setConfirmacion({
+      titulo: 'Eliminar usuario',
+      mensaje: `¿Eliminar a "${usuario.nombre}"? Esta acción no se puede deshacer.`,
+      variante: 'peligro',
+      onConfirmar: async () => {
+        try {
+          await api.delete(`/usuarios/${usuario.id}`);
+          setUsuarios(prev => prev.filter(u => u.id !== usuario.id));
+          mostrarToast('exito', 'Usuario eliminado correctamente');
+        } catch (err) {
+          mostrarToast('error', err.response?.data?.error || 'Error al eliminar usuario');
+        }
+      },
+    });
   };
 
   const handleGuardarEdicion = async (e) => {
@@ -472,6 +505,53 @@ const GestionUsuarios = () => {
             )}
           </tbody>
         </table>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)',
+          background: toast.tipo === 'exito' ? '#16a34a' : '#d92a00',
+          color: 'white', borderRadius: '12px', padding: '13px 22px',
+          fontSize: '14px', fontWeight: '600',
+          boxShadow: '0 8px 28px rgba(0,0,0,0.2)',
+          zIndex: 3000, display: 'flex', alignItems: 'center', gap: '10px',
+          whiteSpace: 'nowrap',
+        }}>
+          {toast.tipo === 'exito' ? <IconCheck /> : <IconAlerta />}
+          {toast.mensaje}
+        </div>
+      )}
+
+      {/* Modal de confirmación */}
+      {confirmacion && (
+        <div style={styles.overlay} onClick={e => { if (e.target === e.currentTarget) setConfirmacion(null); }}>
+          <div style={{ ...styles.modal, maxWidth: '420px' }}>
+            <h2 style={{ ...styles.modalTitulo, fontSize: '18px', marginBottom: '12px' }}>
+              {confirmacion.titulo}
+            </h2>
+            <p style={{ color: '#4b3f6b', fontSize: '14px', margin: '0 0 28px', lineHeight: '1.6' }}>
+              {confirmacion.mensaje}
+            </p>
+            <div style={styles.modalBtns}>
+              <button style={styles.btnCancelar} onClick={() => setConfirmacion(null)}>
+                Cancelar
+              </button>
+              <button
+                style={{
+                  ...styles.btnPrimario,
+                  background: confirmacion.variante === 'peligro' ? '#d92a00' : '#11032a',
+                }}
+                onClick={() => {
+                  confirmacion.onConfirmar();
+                  setConfirmacion(null);
+                }}
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal editar usuario */}

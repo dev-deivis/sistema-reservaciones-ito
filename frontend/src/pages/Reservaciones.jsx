@@ -12,6 +12,13 @@ const Reservaciones = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [filtro, setFiltro] = useState('Todas');
+  const [confirmacion, setConfirmacion] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const mostrarToast = (tipo, mensaje) => {
+    setToast({ tipo, mensaje });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   const cargar = () => {
     setCargando(true);
@@ -24,14 +31,19 @@ const Reservaciones = () => {
 
   useEffect(() => { cargar(); }, []);
 
-  const cancelar = async (id) => {
-    if (!confirm('¿Estás seguro de que deseas cancelar esta reservación?')) return;
-    try {
-      await api.patch(`/reservaciones/${id}/cancelar`);
-      cargar();
-    } catch (err) {
-      alert(err.response?.data?.error || 'Error al cancelar');
-    }
+  const cancelar = (id) => {
+    setConfirmacion({
+      mensaje: '¿Estás seguro de que deseas cancelar esta reservación? Esta acción no se puede deshacer.',
+      onConfirmar: async () => {
+        try {
+          await api.patch(`/reservaciones/${id}/cancelar`);
+          cargar();
+          mostrarToast('exito', 'Reservación cancelada correctamente');
+        } catch (err) {
+          mostrarToast('error', err.response?.data?.error || 'Error al cancelar');
+        }
+      },
+    });
   };
 
   const reservacionesFiltradas = reservaciones.filter((r) => {
@@ -115,6 +127,77 @@ const Reservaciones = () => {
       {!cargando && reservacionesFiltradas.map((r) => (
         <ReservacionCard key={r.id} reservacion={r} onCancelar={cancelar} />
       ))}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)',
+          background: toast.tipo === 'exito' ? '#16a34a' : '#d92a00',
+          color: 'white', borderRadius: '12px', padding: '13px 22px',
+          fontSize: '14px', fontWeight: '600',
+          boxShadow: '0 8px 28px rgba(0,0,0,0.2)',
+          zIndex: 3000, display: 'flex', alignItems: 'center', gap: '10px',
+          whiteSpace: 'nowrap',
+        }}>
+          {toast.tipo === 'exito' ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          )}
+          {toast.mensaje}
+        </div>
+      )}
+
+      {/* Modal de confirmación */}
+      {confirmacion && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(17, 3, 42, 0.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setConfirmacion(null); }}
+        >
+          <div style={{
+            background: 'white', borderRadius: '20px', padding: '32px',
+            width: '100%', maxWidth: '420px',
+            boxShadow: '0 16px 48px rgba(17,3,42,0.22)',
+            fontFamily: '"Inter", sans-serif',
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#11032a', margin: '0 0 12px' }}>
+              Cancelar reservación
+            </h2>
+            <p style={{ color: '#4b3f6b', fontSize: '14px', margin: '0 0 28px', lineHeight: '1.6' }}>
+              {confirmacion.mensaje}
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setConfirmacion(null)}
+                style={{
+                  padding: '10px 20px', border: '1px solid #e0dce8', borderRadius: '10px',
+                  background: 'white', color: '#6b5f82', fontWeight: '600', fontSize: '14px', cursor: 'pointer',
+                }}
+              >
+                Volver
+              </button>
+              <button
+                onClick={() => { confirmacion.onConfirmar(); setConfirmacion(null); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  background: '#d92a00', color: 'white', border: 'none',
+                  borderRadius: '10px', padding: '10px 20px',
+                  fontWeight: '600', fontSize: '14px', cursor: 'pointer',
+                }}
+              >
+                Sí, cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
