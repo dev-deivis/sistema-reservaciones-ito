@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import FiltroEspacios from '../components/FiltroEspacios';
@@ -6,6 +7,7 @@ import EspacioCard from '../components/EspacioCard';
 
 const Espacios = () => {
   const { usuario } = useAuth();
+  const navigate = useNavigate();
   const [espacios, setEspacios] = useState([]);
   const [tiposEspacio, setTiposEspacio] = useState([]);
   const [cargando, setCargando] = useState(true);
@@ -32,8 +34,7 @@ const Espacios = () => {
   };
 
   const handleReservar = (espacio) => {
-    // Lógica para ir a nueva reservación con el espacio preseleccionado
-    window.location.href = `/reservaciones/nueva?espacio=${espacio.id}`;
+    navigate(`/reservaciones/nueva?espacio=${espacio.id}`);
   };
 
   // Aplicar filtros

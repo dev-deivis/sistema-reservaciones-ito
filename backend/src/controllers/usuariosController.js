@@ -5,7 +5,7 @@ const getUsuarios = async (req, res, next) => {
   try {
     const { buscar, rol, activo } = req.query;
 
-    let query = 'SELECT id, nombre, email, rol, activo, created_at FROM usuarios WHERE 1=1';
+    let query = 'SELECT id, nombre, email, rol, tipo, activo, created_at FROM usuarios WHERE 1=1';
     const params = [];
 
     if (buscar) {
@@ -37,7 +37,7 @@ const getUsuarioById = async (req, res, next) => {
     const { id } = req.params;
 
     const usuarioResult = await pool.query(
-      'SELECT id, nombre, email, rol, activo, created_at FROM usuarios WHERE id = $1',
+      'SELECT id, nombre, email, rol, tipo, activo, created_at FROM usuarios WHERE id = $1',
       [id]
     );
 
@@ -97,7 +97,7 @@ const crearUsuario = async (req, res, next) => {
 const actualizarUsuario = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { nombre, email, rol } = req.body;
+    const { nombre, email, rol, tipo } = req.body;
 
     const existe = await pool.query('SELECT id FROM usuarios WHERE id = $1', [id]);
     if (existe.rows.length === 0) {
@@ -115,14 +115,19 @@ const actualizarUsuario = async (req, res, next) => {
       return res.status(400).json({ error: 'rol debe ser "usuario" o "admin"' });
     }
 
+    if (tipo && !['estudiante', 'docente'].includes(tipo)) {
+      return res.status(400).json({ error: 'tipo debe ser "estudiante" o "docente"' });
+    }
+
     const result = await pool.query(
       `UPDATE usuarios SET
         nombre = COALESCE($1, nombre),
         email  = COALESCE($2, email),
-        rol    = COALESCE($3, rol)
-       WHERE id = $4
-       RETURNING id, nombre, email, rol, activo, created_at`,
-      [nombre || null, email || null, rol || null, id]
+        rol    = COALESCE($3, rol),
+        tipo   = COALESCE($4, tipo)
+       WHERE id = $5
+       RETURNING id, nombre, email, rol, tipo, activo, created_at`,
+      [nombre || null, email || null, rol || null, tipo || null, id]
     );
 
     res.json(result.rows[0]);
@@ -148,7 +153,7 @@ const toggleActivo = async (req, res, next) => {
     const nuevoEstado = !existe.rows[0].activo;
 
     const result = await pool.query(
-      'UPDATE usuarios SET activo = $1 WHERE id = $2 RETURNING id, nombre, email, rol, activo',
+      'UPDATE usuarios SET activo = $1 WHERE id = $2 RETURNING id, nombre, email, rol, tipo, activo',
       [nuevoEstado, id]
     );
 

@@ -115,16 +115,29 @@ export default function Perfil() {
           <p style={{ margin: '0 0 10px', fontSize: '14px', color: '#6b5f82' }}>
             {usuario?.email}
           </p>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            background: usuario?.rol === 'admin' ? 'rgba(217,42,0,0.1)' : 'rgba(124,58,237,0.1)',
-            color: usuario?.rol === 'admin' ? '#d92a00' : '#7c3aed',
-            border: `1px solid ${usuario?.rol === 'admin' ? 'rgba(217,42,0,0.25)' : 'rgba(124,58,237,0.25)'}`,
-            borderRadius: '20px', padding: '4px 12px', fontSize: '13px', fontWeight: '600',
-          }}>
-            <IconShield />
-            {usuario?.rol === 'admin' ? 'Administrador' : 'Usuario'}
-          </span>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <span style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              background: usuario?.rol === 'admin' ? 'rgba(217,42,0,0.1)' : 'rgba(124,58,237,0.1)',
+              color: usuario?.rol === 'admin' ? '#d92a00' : '#7c3aed',
+              border: `1px solid ${usuario?.rol === 'admin' ? 'rgba(217,42,0,0.25)' : 'rgba(124,58,237,0.25)'}`,
+              borderRadius: '20px', padding: '4px 12px', fontSize: '13px', fontWeight: '600',
+            }}>
+              <IconShield />
+              {usuario?.rol === 'admin' ? 'Administrador' : 'Usuario'}
+            </span>
+            {usuario?.tipo && (
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                background: usuario.tipo === 'docente' ? 'rgba(37,99,235,0.1)' : 'rgba(5,150,105,0.1)',
+                color: usuario.tipo === 'docente' ? '#2563eb' : '#059669',
+                border: `1px solid ${usuario.tipo === 'docente' ? 'rgba(37,99,235,0.25)' : 'rgba(5,150,105,0.25)'}`,
+                borderRadius: '20px', padding: '4px 12px', fontSize: '13px', fontWeight: '600',
+              }}>
+                {usuario.tipo === 'docente' ? 'Docente' : 'Estudiante'}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 

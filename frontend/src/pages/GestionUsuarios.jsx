@@ -169,6 +169,10 @@ const styles = {
       ? { background: 'rgba(217,42,0,0.1)', color: '#d92a00', border: '1px solid rgba(217,42,0,0.25)' }
       : tipo === 'activo'
       ? { background: 'rgba(22,163,74,0.1)', color: '#16a34a', border: '1px solid rgba(22,163,74,0.25)' }
+      : tipo === 'docente'
+      ? { background: 'rgba(37,99,235,0.1)', color: '#2563eb', border: '1px solid rgba(37,99,235,0.25)' }
+      : tipo === 'estudiante'
+      ? { background: 'rgba(5,150,105,0.1)', color: '#059669', border: '1px solid rgba(5,150,105,0.25)' }
       : { background: 'rgba(107,114,128,0.1)', color: '#6b7280', border: '1px solid rgba(107,114,128,0.25)' }),
   }),
   btnIcono: (color) => ({
@@ -340,8 +344,8 @@ const GestionUsuarios = () => {
     setGuardando(true);
     setErrorEditar('');
     try {
-      const { id, nombre, email, rol } = usuarioEditando;
-      const res = await api.put(`/usuarios/${id}`, { nombre, email, rol });
+      const { id, nombre, email, rol, tipo } = usuarioEditando;
+      const res = await api.put(`/usuarios/${id}`, { nombre, email, rol, tipo });
       setUsuarios(prev => prev.map(u => u.id === id ? { ...u, ...res.data } : u));
       setUsuarioEditando(null);
     } catch (err) {
@@ -452,6 +456,7 @@ const GestionUsuarios = () => {
               <th style={styles.th}>Nombre</th>
               <th style={styles.th}>Email</th>
               <th style={styles.th}>Rol</th>
+              <th style={styles.th}>Tipo</th>
               <th style={styles.th}>Estado</th>
               <th style={styles.th}>Registro</th>
               <th style={styles.th}>Acciones</th>
@@ -460,7 +465,7 @@ const GestionUsuarios = () => {
           <tbody>
             {usuarios.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ ...styles.td, textAlign: 'center', color: '#9c94b3', padding: '32px' }}>
+                <td colSpan={7} style={{ ...styles.td, textAlign: 'center', color: '#9c94b3', padding: '32px' }}>
                   No se encontraron usuarios
                 </td>
               </tr>
@@ -487,6 +492,11 @@ const GestionUsuarios = () => {
                     <span style={styles.badge(u.rol === 'admin' ? 'admin' : 'usuario')}>
                       {u.rol === 'admin' && <IconShield />}
                       {u.rol === 'admin' ? 'Admin' : 'Usuario'}
+                    </span>
+                  </td>
+                  <td style={styles.td}>
+                    <span style={styles.badge(u.tipo || 'estudiante')}>
+                      {u.tipo === 'docente' ? 'Docente' : 'Estudiante'}
                     </span>
                   </td>
                   <td style={styles.td}>
@@ -658,6 +668,17 @@ const GestionUsuarios = () => {
                 >
                   <option value="usuario">Usuario</option>
                   <option value="admin">Administrador</option>
+                </select>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Tipo</label>
+                <select
+                  style={{ ...styles.input, cursor: 'pointer' }}
+                  value={usuarioEditando.tipo || 'estudiante'}
+                  onChange={e => setUsuarioEditando(p => ({ ...p, tipo: e.target.value }))}
+                >
+                  <option value="estudiante">Estudiante</option>
+                  <option value="docente">Docente</option>
                 </select>
               </div>
 
