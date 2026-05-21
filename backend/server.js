@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const errorHandler = require('./src/middleware/errorHandler');
+const completarReservaciones = require('./src/jobs/completarReservaciones');
 
 const espaciosRoutes = require('./src/routes/espacios');
 const reservacionesRoutes = require('./src/routes/reservaciones');
@@ -29,4 +30,9 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
+
+  // Ejecutar al arrancar para limpiar reservaciones pasadas desde antes
+  completarReservaciones();
+  // Repetir cada 5 minutos
+  setInterval(completarReservaciones, 5 * 60 * 1000);
 });

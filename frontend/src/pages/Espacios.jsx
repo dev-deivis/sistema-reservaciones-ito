@@ -55,23 +55,6 @@ const Espacios = () => {
           <p style={{ color: '#6b7280', margin: '0.2rem 0 1.5rem 0' }}>Explora y reserva los espacios del Instituto</p>
         </div>
 
-        {usuario?.rol === 'admin' && (
-          <button style={{
-            backgroundColor: '#1976d2',
-            color: 'white',
-            border: 'none',
-            padding: '0.6rem 1.2rem',
-            borderRadius: '8px',
-            fontWeight: '500',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem'
-          }}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Crear espacio
-          </button>
-        )}
       </div>
 
       <FiltroEspacios

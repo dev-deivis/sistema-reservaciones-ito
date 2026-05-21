@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 const GestionEspacios = () => {
   const { usuario } = useAuth();
+  const [searchParams] = useSearchParams();
   const [espacios, setEspacios] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [espacioDestacadoId, setEspacioDestacadoId] = useState(null);
+  const filaDestacadaRef = useRef(null);
 
   // Estados para modal de crear
   const [modalCrear, setModalCrear] = useState(false);
@@ -23,8 +27,24 @@ const GestionEspacios = () => {
     ]).then(([resE, resT]) => {
       setEspacios(resE.data);
       setTipos(resT.data);
+
+      const editarId = parseInt(searchParams.get('editar'));
+      if (editarId) {
+        const espacio = resE.data.find(e => e.id === editarId);
+        if (espacio) {
+          setEspacioDestacadoId(editarId);
+          setEspacioEditando({ ...espacio, tipo_espacio_id: espacio.tipo_espacio_id || '' });
+          setModalEditar(true);
+        }
+      }
     }).finally(() => setCargando(false));
   }, []);
+
+  useEffect(() => {
+    if (espacioDestacadoId && filaDestacadaRef.current) {
+      filaDestacadaRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [espacioDestacadoId]);
 
   const handleReservar = (espacio) => {
     window.location.href = `/reservaciones/nueva?espacio=${espacio.id}`;
@@ -126,8 +146,19 @@ const GestionEspacios = () => {
               if (estadoStr.includes('mantenimiento')) { badgeBg = '#fff3cd'; badgeColor = '#856404'; }
               else if (estadoStr.includes('inactivo')) { badgeBg = '#f8d7da'; badgeColor = '#58151c'; }
 
+              const destacado = e.id === espacioDestacadoId;
               return (
-                <tr key={e.id} style={{ borderBottom: idx < espacios.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
+                <tr
+                  key={e.id}
+                  ref={destacado ? filaDestacadaRef : null}
+                  style={{
+                    borderBottom: idx < espacios.length - 1 ? '1px solid #f0f0f0' : 'none',
+                    ...(destacado && {
+                      backgroundColor: '#fff7ed',
+                      borderLeft: '4px solid #c62828',
+                    }),
+                  }}
+                >
                   <td style={{ padding: '1rem 1.5rem', fontWeight: '500', color: '#1f2937', fontSize: '0.95rem' }}>{e.nombre}</td>
                   <td style={{ padding: '1rem 1.5rem', color: '#6b7280', fontSize: '0.95rem' }}>{e.tipo_nombre || e.tipo || 'General'}</td>
                   <td style={{ padding: '1rem 1.5rem', color: '#6b7280', fontSize: '0.95rem' }}>{e.capacidad} personas</td>
