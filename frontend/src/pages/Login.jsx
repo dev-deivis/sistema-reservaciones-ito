@@ -69,6 +69,7 @@ const Login = () => {
         nombre: formRegistro.nombre,
         email: formRegistro.email,
         password: formRegistro.password,
+        tipo: formRegistro.tipo,
       });
       cambiarVista('login');
       setFormLogin({ email: formRegistro.email, password: '' });

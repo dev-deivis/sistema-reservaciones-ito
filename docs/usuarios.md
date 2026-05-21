@@ -77,6 +77,48 @@ Obtiene un usuario por ID junto con sus reservaciones activas (estado distinto d
 
 ---
 
+## POST /api/auth/registro
+
+Crea una cuenta de usuario desde el formulario público de registro.
+
+**Body**
+```json
+{
+  "nombre": "Juan Pérez García",
+  "email": "juan@itoaxaca.edu.mx",
+  "password": "secreto123",
+  "tipo": "estudiante"
+}
+```
+
+| Campo | Requerido | Valores válidos | Default |
+|-------|-----------|-----------------|---------|
+| `nombre` | Sí | — | — |
+| `email` | Sí | Debe terminar en `@itoaxaca.edu.mx` | — |
+| `password` | Sí | — | — |
+| `tipo` | No | `estudiante`, `docente` | `estudiante` |
+
+- `rol` se fija automáticamente en `usuario`; no se puede enviar desde este endpoint.
+- Si `tipo` viene vacío o con un valor no reconocido, se guarda `estudiante`.
+
+**Ejemplo response (201)**
+```json
+{
+  "id": 9,
+  "nombre": "Juan Pérez García",
+  "email": "juan@itoaxaca.edu.mx",
+  "rol": "usuario",
+  "tipo": "estudiante",
+  "created_at": "2026-05-20T18:00:00.000Z"
+}
+```
+
+**Errores posibles**
+- `400` — campos faltantes o email sin dominio institucional
+- `409` — ya existe una cuenta con ese email
+
+---
+
 ## POST /api/usuarios
 
 Crea un nuevo usuario. La contraseña se hashea con bcrypt (10 rounds).

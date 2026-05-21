@@ -52,7 +52,7 @@ const login = async (req, res, next) => {
 
 const registro = async (req, res, next) => {
   try {
-    const { nombre, email, password } = req.body;
+    const { nombre, email, password, tipo } = req.body;
 
     if (!nombre || !email || !password) {
       return res.status(400).json({ error: 'Nombre, email y contraseña son requeridos' });
@@ -61,6 +61,9 @@ const registro = async (req, res, next) => {
     if (!email.endsWith('@itoaxaca.edu.mx')) {
       return res.status(400).json({ error: 'Solo se permite correo institucional (@itoaxaca.edu.mx)' });
     }
+
+    const tiposValidos = ['estudiante', 'docente'];
+    const tipoFinal = tiposValidos.includes(tipo) ? tipo : 'estudiante';
 
     const duplicado = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
     if (duplicado.rows.length > 0) {
@@ -71,8 +74,8 @@ const registro = async (req, res, next) => {
     const password_hash = await bcrypt.hash(password, salt);
 
     const result = await pool.query(
-      'INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, created_at',
-      [nombre, email, password_hash, 'usuario']
+      'INSERT INTO usuarios (nombre, email, password_hash, rol, tipo) VALUES ($1, $2, $3, $4, $5) RETURNING id, nombre, email, rol, tipo, created_at',
+      [nombre, email, password_hash, 'usuario', tipoFinal]
     );
 
     res.status(201).json(result.rows[0]);
