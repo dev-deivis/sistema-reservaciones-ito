@@ -65,7 +65,7 @@ const getUsuarioById = async (req, res, next) => {
 
 const crearUsuario = async (req, res, next) => {
   try {
-    const { nombre, email, password, rol } = req.body;
+    const { nombre, email, password, rol, tipo } = req.body;
 
     if (!nombre || !email || !password || !rol) {
       return res.status(400).json({ error: 'nombre, email, password y rol son requeridos' });
@@ -73,6 +73,11 @@ const crearUsuario = async (req, res, next) => {
 
     if (!['usuario', 'admin'].includes(rol)) {
       return res.status(400).json({ error: 'rol debe ser "usuario" o "admin"' });
+    }
+
+    const tipoFinal = tipo || 'estudiante';
+    if (!['estudiante', 'docente'].includes(tipoFinal)) {
+      return res.status(400).json({ error: 'tipo debe ser "estudiante" o "docente"' });
     }
 
     const duplicado = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
@@ -84,8 +89,8 @@ const crearUsuario = async (req, res, next) => {
     const password_hash = await bcrypt.hash(password, salt);
 
     const result = await pool.query(
-      'INSERT INTO usuarios (nombre, email, password_hash, rol) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, rol, activo, created_at',
-      [nombre, email, password_hash, rol]
+      'INSERT INTO usuarios (nombre, email, password_hash, rol, tipo) VALUES ($1, $2, $3, $4, $5) RETURNING id, nombre, email, rol, tipo, activo, created_at',
+      [nombre, email, password_hash, rol, tipoFinal]
     );
 
     res.status(201).json(result.rows[0]);

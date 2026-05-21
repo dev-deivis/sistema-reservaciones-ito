@@ -96,7 +96,7 @@ const Login = () => {
           </div>
           <h1 className="login-title">ReservaITO</h1>
           <p className="login-subtitle">
-            Sistema de Reservacion de Espacios del Instituto<br />Tecnologico de Oaxaca
+            Sistema de Reservación de Espacios del Instituto<br />Tecnológico de Oaxaca
           </p>
           <div className="feature-cards">
             <div className="feature-card">
@@ -148,7 +148,7 @@ const Login = () => {
 
             <form className="login-form" onSubmit={handleLogin}>
               <div className="input-group">
-                <label>Correo electronico</label>
+                <label>Correo electrónico</label>
                 <div className="input-wrapper">
                   <div className="input-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -192,7 +192,7 @@ const Login = () => {
               )}
 
               <button className="login-button" type="submit" disabled={cargandoLogin}>
-                {cargandoLogin ? 'Cargando...' : 'Iniciar sesion'}
+                {cargandoLogin ? 'Cargando...' : 'Iniciar sesión'}
               </button>
             </form>
 
@@ -213,7 +213,7 @@ const Login = () => {
               </svg>
             </div>
             <h2 className="welcome-title">Crear cuenta</h2>
-            <p className="welcome-subtitle">Solo para personal del Instituto Tecnologico de Oaxaca</p>
+            <p className="welcome-subtitle">Solo para personal del Instituto Tecnológico de Oaxaca</p>
 
             <form className="login-form" onSubmit={handleRegistro}>
               <div className="input-group">
@@ -334,14 +334,14 @@ const Login = () => {
             <p className="login-toggle">
               ¿Ya tienes cuenta?{' '}
               <button type="button" onClick={() => cambiarVista('login')}>
-                Iniciar sesion
+                Iniciar sesión
               </button>
             </p>
           </div>
         )}
 
         <div className="login-footer">
-          <p>Tecnologico Nacional de Mexico<br />2026 Instituto Tecnologico de Oaxaca</p>
+          <p>Tecnológico Nacional de México<br />2026 Instituto Tecnológico de Oaxaca</p>
         </div>
       </div>
     </div>
