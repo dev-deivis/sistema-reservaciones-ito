@@ -47,6 +47,13 @@ const Reservaciones = () => {
     });
   };
 
+  const modificar = (reservacionActualizada) => {
+    setReservaciones(prev =>
+      prev.map(r => r.id === reservacionActualizada.id ? { ...r, ...reservacionActualizada } : r)
+    );
+    mostrarToast('exito', 'Reservación modificada correctamente');
+  };
+
   const reservacionesFiltradas = reservaciones.filter((r) => {
     const porEstado = filtro === 'Todas' ? true
       : filtro === 'Activas' ? (r.estado === 'pendiente' || r.estado === 'confirmada')
@@ -177,7 +184,7 @@ const Reservaciones = () => {
       )}
 
       {!cargando && reservacionesFiltradas.map((r) => (
-        <ReservacionCard key={r.id} reservacion={r} onCancelar={cancelar} />
+        <ReservacionCard key={r.id} reservacion={r} onCancelar={cancelar} onModificar={modificar} />
       ))}
 
       {/* Toast */}

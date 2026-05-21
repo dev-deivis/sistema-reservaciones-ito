@@ -13,15 +13,27 @@ const Notificaciones = () => {
 
   useEffect(() => { cargar(); }, []);
 
+  const [errorAccion, setErrorAccion] = useState('');
+
   const marcarLeida = async (id) => {
-    await api.patch(`/notificaciones/${id}/leer`);
-    cargar();
+    try {
+      await api.patch(`/notificaciones/${id}/leer`);
+      cargar();
+    } catch {
+      setErrorAccion('No se pudo marcar la notificación como leída');
+      setTimeout(() => setErrorAccion(''), 3000);
+    }
   };
 
   const marcarTodas = async () => {
-    await api.patch('/notificaciones/leer-todas');
-    cargar();
-    window.dispatchEvent(new CustomEvent('notificaciones-actualizadas'));
+    try {
+      await api.patch('/notificaciones/leer-todas');
+      cargar();
+      window.dispatchEvent(new CustomEvent('notificaciones-actualizadas'));
+    } catch {
+      setErrorAccion('No se pudieron marcar las notificaciones como leídas');
+      setTimeout(() => setErrorAccion(''), 3000);
+    }
   };
 
   if (cargando) return <p style={{ padding: '2rem', textAlign: 'center' }}>Cargando...</p>;
@@ -62,7 +74,13 @@ const Notificaciones = () => {
           Marcar todas como leídas
         </button>
       </div>
-      <p style={{ color: '#666', marginBottom: '2rem', fontSize: '1rem' }}>Vista de todas las notificaciones del sistema</p>
+      <p style={{ color: '#666', marginBottom: '2rem', fontSize: '1rem' }}>Tus notificaciones recientes</p>
+
+      {errorAccion && (
+        <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '10px 16px', marginBottom: '1rem', color: '#b91c1c', fontSize: '14px' }}>
+          {errorAccion}
+        </div>
+      )}
 
       <div style={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden' }}>
         {notificaciones.length === 0 && <div style={{ padding: '3rem', textAlign: 'center', color: '#666' }}>Sin notificaciones.</div>}

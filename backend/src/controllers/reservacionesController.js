@@ -35,7 +35,9 @@ const validarHorarioReservacion = (fecha_inicio, fecha_fin) => {
 
 const notificar = async (payload) => {
   try {
-    await axios.post(`${NOTIF_URL}/api/notificaciones`, payload);
+    await axios.post(`${NOTIF_URL}/api/notificaciones`, payload, {
+      headers: { 'x-internal-key': process.env.INTERNAL_API_KEY || 'secret_key_interna' },
+    });
   } catch {
     console.warn('[reservaciones] microservicio de notificaciones no disponible — se omite notificación');
   }
@@ -286,6 +288,16 @@ const modificarReservacion = async (req, res, next) => {
        VALUES ($1, $2, 'modificacion', 'Reservación modificada')`,
       [id, usuario_id]
     );
+
+    const espacioResult = await pool.query('SELECT nombre FROM espacios WHERE id = $1', [res_data.espacio_id]);
+    const nombreEspacio = espacioResult.rows[0]?.nombre || 'el espacio';
+
+    await notificar({
+      usuario_id: res_data.usuario_id,
+      reservacion_id: id,
+      tipo: 'modificacion',
+      mensaje: `Tu reservación para ${nombreEspacio} fue modificada exitosamente`,
+    });
 
     res.json(result.rows[0]);
   } catch (err) {
