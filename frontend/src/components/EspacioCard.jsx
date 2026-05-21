@@ -28,18 +28,24 @@ const getBadgeStyle = (estado) => {
 const EspacioCard = ({ espacio, onReservar }) => {
   const { usuario } = useAuth();
   const [showCalendario, setShowCalendario] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const mostrarToast = (tipo, mensaje) => {
+    setToast({ tipo, mensaje });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   // Mock amenities para la UI visual si no vienen del backend
   const amenidades = espacio.recursos || ['Aire acondicionado', 'Proyector'];
 
-  // Agrega esto antes de: return (
   const handleEliminar = async () => {
-    if (!confirm(`¿Eliminar "${espacio.nombre}"? Esta acción no se puede deshacer.`)) return;
     try {
       await api.delete(`/espacios/${espacio.id}`);
       window.location.reload();
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al eliminar el espacio');
+      setConfirmando(false);
+      mostrarToast('error', err.response?.data?.error || 'Error al eliminar el espacio');
     }
   };
 
@@ -113,17 +119,81 @@ const EspacioCard = ({ espacio, onReservar }) => {
           {usuario?.rol === 'admin' && (
             <div style={{ display: 'flex', gap: '0.6rem' }}>
               <button onClick={handleEditar} style={{ flex: 1, padding: '0.6rem', backgroundColor: '#f3f4f6', border: '1px solid #d1d5db', color: '#374151', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Editar</button>
-              <button onClick={handleEliminar} style={{ flex: 1, padding: '0.6rem', backgroundColor: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Eliminar</button>
+              <button onClick={() => setConfirmando(true)} style={{ flex: 1, padding: '0.6rem', backgroundColor: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem' }}>Eliminar</button>
             </div>
           )}
         </div>
       </div>
 
       {showCalendario && (
-        <DisponibilidadCalendario 
-          espacio={espacio} 
-          onClose={() => setShowCalendario(false)} 
+        <DisponibilidadCalendario
+          espacio={espacio}
+          onClose={() => setShowCalendario(false)}
         />
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)',
+          background: toast.tipo === 'exito' ? '#16a34a' : '#d92a00',
+          color: 'white', borderRadius: '12px', padding: '13px 22px',
+          fontSize: '14px', fontWeight: '600',
+          boxShadow: '0 8px 28px rgba(0,0,0,0.2)',
+          zIndex: 3000, display: 'flex', alignItems: 'center', gap: '10px',
+          whiteSpace: 'nowrap', fontFamily: '"Inter", sans-serif',
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {toast.mensaje}
+        </div>
+      )}
+
+      {/* Modal de confirmación */}
+      {confirmando && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(17, 3, 42, 0.55)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+          }}
+          onClick={e => { if (e.target === e.currentTarget) setConfirmando(false); }}
+        >
+          <div style={{
+            background: 'white', borderRadius: '20px', padding: '32px',
+            width: '100%', maxWidth: '420px',
+            boxShadow: '0 16px 48px rgba(17,3,42,0.22)',
+            fontFamily: '"Inter", sans-serif',
+          }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#11032a', margin: '0 0 12px' }}>
+              Eliminar espacio
+            </h2>
+            <p style={{ color: '#4b3f6b', fontSize: '14px', margin: '0 0 28px', lineHeight: '1.6' }}>
+              ¿Eliminar <strong>"{espacio.nombre}"</strong>? Esta acción no se puede deshacer.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => setConfirmando(false)}
+                style={{
+                  padding: '10px 20px', border: '1px solid #e0dce8', borderRadius: '10px',
+                  background: 'white', color: '#6b5f82', fontWeight: '600', fontSize: '14px', cursor: 'pointer',
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleEliminar}
+                style={{
+                  background: '#d92a00', color: 'white', border: 'none',
+                  borderRadius: '10px', padding: '10px 20px',
+                  fontWeight: '600', fontSize: '14px', cursor: 'pointer',
+                }}
+              >
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
