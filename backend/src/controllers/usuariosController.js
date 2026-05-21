@@ -190,4 +190,47 @@ const eliminarUsuario = async (req, res, next) => {
   }
 };
 
-module.exports = { getUsuarios, getUsuarioById, crearUsuario, actualizarUsuario, toggleActivo, eliminarUsuario };
+const cambiarPassword = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { password_actual, password_nueva } = req.body;
+    const { id: usuarioId, rol } = req.usuario;
+
+    const esPropioUsuario = usuarioId === parseInt(id);
+    const esAdmin = rol === 'admin';
+
+    if (!esPropioUsuario && !esAdmin) {
+      return res.status(403).json({ error: 'No tienes permiso para cambiar esta contraseña' });
+    }
+
+    if (!password_nueva || password_nueva.length < 8) {
+      return res.status(400).json({ error: 'La nueva contraseña debe tener mínimo 8 caracteres' });
+    }
+
+    const usuarioResult = await pool.query('SELECT password_hash FROM usuarios WHERE id = $1', [id]);
+    if (usuarioResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    if (esPropioUsuario) {
+      if (!password_actual) {
+        return res.status(400).json({ error: 'La contraseña actual es requerida' });
+      }
+      const coincide = await bcrypt.compare(password_actual, usuarioResult.rows[0].password_hash);
+      if (!coincide) {
+        return res.status(400).json({ error: 'La contraseña actual es incorrecta' });
+      }
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const password_hash = await bcrypt.hash(password_nueva, salt);
+
+    await pool.query('UPDATE usuarios SET password_hash = $1 WHERE id = $2', [password_hash, id]);
+
+    res.json({ mensaje: 'Contraseña actualizada correctamente' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { getUsuarios, getUsuarioById, crearUsuario, actualizarUsuario, toggleActivo, eliminarUsuario, cambiarPassword };
