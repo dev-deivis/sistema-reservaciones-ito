@@ -80,6 +80,12 @@ const IconBellSmall = () => (
     <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
   </svg>
 );
+const IconEditSmall = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
 
 // ── Badge estado ─────────────────────────────────────────
 const badges = {
@@ -160,7 +166,7 @@ const Dashboard = () => {
 
       const activas = reservaciones.filter(r => r.estado === 'pendiente' || r.estado === 'confirmada').length;
       const noLeidas = notificaciones.filter(n => !n.leida).length;
-      const espaciosDisponibles = espacios.filter(e => e.activo !== false).length;
+      const espaciosDisponibles = espacios.filter(e => e.estado === 'disponible').length;
 
       setStats({
         total: reservaciones.length,
@@ -244,7 +250,7 @@ const Dashboard = () => {
             }}
             onMouseOver={e => e.currentTarget.style.background = '#b91c1c'}
             onMouseOut={e => e.currentTarget.style.background = '#dc2626'}>
-              <IconCal color="white" /> Nueva Reservacion
+              <IconCal color="white" /> Nueva Reservación
             </button>
           </Link>
         </div>
@@ -375,7 +381,10 @@ const Dashboard = () => {
           {actividad.map((n, i) => {
             let IconoNotificacion = <IconBellSmall />;
             let bgIcono = '#fef3c7';
-            if (n.mensaje.toLowerCase().includes('confirmada')) {
+            if (n.tipo === 'modificacion' || n.mensaje.toLowerCase().includes('modific')) {
+              IconoNotificacion = <IconEditSmall />;
+              bgIcono = '#ede9fe';
+            } else if (n.mensaje.toLowerCase().includes('confirmada')) {
               IconoNotificacion = <IconCheckCircleSmall />;
               bgIcono = '#f0fdf4';
             } else if (n.mensaje.toLowerCase().includes('cancelada')) {

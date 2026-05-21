@@ -2,18 +2,6 @@ const pool = require('../models/db');
 
 const completarReservacionesPasadas = async () => {
   try {
-    // Confirmar reservaciones futuras que quedaron en pendiente
-    const confirmadas = await pool.query(`
-      UPDATE reservaciones
-      SET estado = 'confirmada'
-      WHERE fecha_fin >= NOW()
-        AND estado = 'pendiente'
-      RETURNING id
-    `);
-    if (confirmadas.rowCount > 0) {
-      console.log(`[job] ${confirmadas.rowCount} reservación(es) pendientes confirmadas automáticamente`);
-    }
-
     // Completar reservaciones cuya fecha ya pasó
     const completadas = await pool.query(`
       UPDATE reservaciones

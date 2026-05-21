@@ -37,6 +37,10 @@ const Espacios = () => {
     navigate(`/reservaciones/nueva?espacio=${espacio.id}`);
   };
 
+  const handleEliminar = (id) => {
+    setEspacios(prev => prev.filter(e => e.id !== id));
+  };
+
   // Aplicar filtros
   const espaciosFiltrados = espacios.filter(e => {
     const matchBusqueda = e.nombre?.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
@@ -69,7 +73,7 @@ const Espacios = () => {
         gap: '1.5rem'
       }}>
         {espaciosFiltrados.map((e) => (
-          <EspacioCard key={e.id} espacio={e} onReservar={handleReservar} />
+          <EspacioCard key={e.id} espacio={e} onReservar={handleReservar} onEliminar={handleEliminar} />
         ))}
       </div>
 

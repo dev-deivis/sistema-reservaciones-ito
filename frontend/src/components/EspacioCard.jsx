@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DisponibilidadCalendario from './DisponibilidadCalendario';
 import api from '../api/axios';
@@ -25,8 +26,9 @@ const getBadgeStyle = (estado) => {
   }
 };
 
-const EspacioCard = ({ espacio, onReservar }) => {
+const EspacioCard = ({ espacio, onReservar, onEliminar }) => {
   const { usuario } = useAuth();
+  const navigate = useNavigate();
   const [showCalendario, setShowCalendario] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const [toast, setToast] = useState(null);
@@ -36,13 +38,13 @@ const EspacioCard = ({ espacio, onReservar }) => {
     setTimeout(() => setToast(null), 3500);
   };
 
-  // Mock amenities para la UI visual si no vienen del backend
-  const amenidades = espacio.recursos || ['Aire acondicionado', 'Proyector'];
+  const amenidades = espacio.recursos || [];
 
   const handleEliminar = async () => {
     try {
       await api.delete(`/espacios/${espacio.id}`);
-      window.location.reload();
+      setConfirmando(false);
+      onEliminar && onEliminar(espacio.id);
     } catch (err) {
       setConfirmando(false);
       mostrarToast('error', err.response?.data?.error || 'Error al eliminar el espacio');
@@ -50,7 +52,7 @@ const EspacioCard = ({ espacio, onReservar }) => {
   };
 
   const handleEditar = () => {
-    window.location.href = `/gestion?editar=${espacio.id}`;
+    navigate('/gestion');
   };
 
   return (
@@ -93,13 +95,17 @@ const EspacioCard = ({ espacio, onReservar }) => {
               {espacio.ubicacion}
             </p>
             
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-              {amenidades.map((amenidad, idx) => (
-                <span key={idx} style={{ backgroundColor: '#f3f4f6', color: '#6b7280', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem' }}>
-                  {typeof amenidad === 'string' ? amenidad : amenidad.nombre}
-                </span>
-              ))}
-            </div>
+            {amenidades.length === 0 ? (
+              <p style={{ fontSize: '0.85rem', color: '#9ca3af', margin: 0 }}>Sin recursos registrados</p>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {amenidades.map((amenidad, idx) => (
+                  <span key={idx} style={{ backgroundColor: '#f3f4f6', color: '#6b7280', padding: '0.3rem 0.6rem', borderRadius: '4px', fontSize: '0.8rem' }}>
+                    {typeof amenidad === 'string' ? amenidad : amenidad.nombre}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

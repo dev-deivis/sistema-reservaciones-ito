@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../api/axios';
 
 // ── Íconos ──────────────────────────────────────────────
 const IconDashboard = () => (
@@ -80,12 +81,8 @@ const Sidebar = () => {
 
   useEffect(() => {
     const fetchNoLeidas = () => {
-      const token = localStorage.getItem('token');
-      fetch('/api/notificaciones/no-leidas', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(r => r.json())
-        .then(data => setNoLeidas(data.total ?? data.count ?? 0))
+      api.get('/notificaciones/no-leidas')
+        .then(res => setNoLeidas(res.data.total ?? res.data.count ?? 0))
         .catch(() => setNoLeidas(0));
     };
 
