@@ -19,6 +19,23 @@ const DisponibilidadCalendario = ({ espacio, onClose }) => {
       return;
     }
 
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+
+    const diaInicio = inicio.getDay();
+    const diaFin = fin.getDay();
+    if (diaInicio === 0 || diaInicio === 6 || diaFin === 0 || diaFin === 6) {
+      setErrorValidacion('Las reservaciones solo están disponibles de lunes a viernes.');
+      return;
+    }
+
+    const horaInicioOk = inicio.getHours() >= 7;
+    const horaFinOk = fin.getHours() < 20 || (fin.getHours() === 20 && fin.getMinutes() === 0);
+    if (!horaInicioOk || !horaFinOk) {
+      setErrorValidacion('El horario debe estar entre las 7:00 am y las 8:00 pm.');
+      return;
+    }
+
     setErrorValidacion('');
     setCargando(true);
     setResultado(null);
