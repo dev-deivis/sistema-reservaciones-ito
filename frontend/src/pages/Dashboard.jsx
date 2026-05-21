@@ -314,7 +314,7 @@ const Dashboard = () => {
               <div style={{ width: '40px', height: '40px', background: '#fee2e2', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <IconCal />
               </div>
-              <span style={{ fontWeight: '700', fontSize: '16px', color: '#111827' }}>Proximas reservaciones</span>
+              <span style={{ fontWeight: '700', fontSize: '16px', color: '#111827' }}>Próximas reservaciones</span>
             </div>
             <Link to="/reservaciones" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', color: '#b91c1c', fontSize: '14px', fontWeight: '600' }}>
               Ver todas <IconArrow />

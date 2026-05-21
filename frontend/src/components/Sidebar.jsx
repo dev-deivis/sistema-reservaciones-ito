@@ -85,7 +85,7 @@ const Sidebar = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then(r => r.json())
-        .then(data => setNoLeidas(data.count ?? data ?? 0))
+        .then(data => setNoLeidas(data.total ?? data.count ?? 0))
         .catch(() => setNoLeidas(0));
     };
 
