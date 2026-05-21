@@ -14,8 +14,15 @@ const IconMoon = () => (
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
   </svg>
 );
+const IconMenu = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+    <line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+);
 
-const Layout = ({ children }) => {
+const Layout = ({ children, onToggleSidebar, isMobile }) => {
   const { usuario } = useAuth();
   const navigate = useNavigate();
   const [noLeidas, setNoLeidas] = useState(0);
@@ -41,27 +48,46 @@ const Layout = ({ children }) => {
       <div style={{
         height: '64px', background: 'white', borderBottom: '1px solid #e5e7eb',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 32px', position: 'sticky', top: 0, zIndex: 50,
+        padding: isMobile ? '0 12px' : '0 32px',
+        position: 'sticky', top: 0, zIndex: 50,
+        boxSizing: 'border-box',
       }}>
-        {/* Título con barra roja */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <div style={{ width: '4px', height: '32px', background: '#c0392b', borderRadius: '2px' }} />
+        {/* Izquierda: hamburger + barra roja + título */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '14px' }}>
+          {isMobile && (
+            <button
+              onClick={onToggleSidebar}
+              style={{
+                width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #e5e7eb',
+                background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', color: '#374151', flexShrink: 0,
+              }}
+            >
+              <IconMenu />
+            </button>
+          )}
+          <div style={{ width: '4px', height: '32px', background: '#c0392b', borderRadius: '2px', flexShrink: 0 }} />
           <div>
-            <p style={{ margin: 0, fontWeight: '700', fontSize: '17px', color: '#111827' }}>Sistema de Reservaciones</p>
-            <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Instituto Tecnológico de Oaxaca</p>
+            <p style={{ margin: 0, fontWeight: '700', fontSize: isMobile ? '14px' : '17px', color: '#111827', whiteSpace: 'nowrap' }}>
+              {isMobile ? 'ReservaITO' : 'Sistema de Reservaciones'}
+            </p>
+            {!isMobile && (
+              <p style={{ margin: 0, fontSize: '12px', color: '#6b7280' }}>Instituto Tecnológico de Oaxaca</p>
+            )}
           </div>
         </div>
 
         {/* Derecha: modo oscuro + campana + usuario */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {/* Botón modo oscuro */}
-          <button style={{
-            width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #e5e7eb',
-            background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer', color: '#6b7280',
-          }}>
-            <IconMoon />
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '16px' }}>
+          {!isMobile && (
+            <button style={{
+              width: '40px', height: '40px', borderRadius: '8px', border: '1px solid #e5e7eb',
+              background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', color: '#6b7280',
+            }}>
+              <IconMoon />
+            </button>
+          )}
 
           {/* Campana con badge */}
           <button
@@ -84,19 +110,21 @@ const Layout = ({ children }) => {
 
           {/* Nombre + rol + avatar */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ textAlign: 'right' }}>
-              <p style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: '#111827' }}>{usuario?.nombre}</p>
-              {usuario?.rol === 'admin' && (
-                <span style={{
-                  fontSize: '11px', color: '#c0392b', fontWeight: '700',
-                  background: '#fee2e2', padding: '2px 8px', borderRadius: '4px',
-                }}>ADMIN</span>
-              )}
-            </div>
+            {!isMobile && (
+              <div style={{ textAlign: 'right' }}>
+                <p style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: '#111827' }}>{usuario?.nombre}</p>
+                {usuario?.rol === 'admin' && (
+                  <span style={{
+                    fontSize: '11px', color: '#c0392b', fontWeight: '700',
+                    background: '#fee2e2', padding: '2px 8px', borderRadius: '4px',
+                  }}>ADMIN</span>
+                )}
+              </div>
+            )}
             <div style={{
               width: '40px', height: '40px', borderRadius: '50%', background: '#c0392b',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: '700', fontSize: '15px',
+              color: 'white', fontWeight: '700', fontSize: '15px', flexShrink: 0,
             }}>
               {iniciales}
             </div>

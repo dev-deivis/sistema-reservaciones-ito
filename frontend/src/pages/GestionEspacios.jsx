@@ -119,7 +119,7 @@ const GestionEspacios = () => {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '1rem', boxSizing: 'border-box' }}>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -137,8 +137,8 @@ const GestionEspacios = () => {
         </button>
       </div>
 
-      <div style={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div style={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '12px', overflowX: 'auto' }}>
+        <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
             <tr style={{ backgroundColor: '#f9fafa', borderBottom: '1px solid #eee' }}>
               <th style={{ padding: '1rem 1.5rem', fontWeight: '600', color: '#4b5563', fontSize: '0.9rem' }}>Nombre</th>

@@ -3,11 +3,15 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import ReservacionCard from '../components/ReservacionCard';
+import useWindowSize from '../hooks/useWindowSize';
 
 const FILTROS = ['Todas', 'Activas', 'Canceladas', 'Completadas'];
 
 const Reservaciones = () => {
   const { usuario } = useAuth();
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+
   const [reservaciones, setReservaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -60,9 +64,7 @@ const Reservaciones = () => {
       : filtro === 'Canceladas' ? r.estado === 'cancelada'
       : filtro === 'Completadas' ? r.estado === 'completada'
       : true;
-
     if (!porEstado) return false;
-
     if (!busqueda.trim()) return true;
     const q = busqueda.toLowerCase();
     return (
@@ -78,11 +80,11 @@ const Reservaciones = () => {
     : 'Consulta y gestiona tus reservaciones';
 
   return (
-   <div style={{ padding: "32px 36px", width: "100%" }}>
+    <div style={{ padding: isMobile ? '16px' : '32px 36px', width: '100%', boxSizing: 'border-box' }}>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>
+          <h1 style={{ fontSize: isMobile ? '20px' : '26px', fontWeight: '700', color: '#111827', margin: '0 0 4px 0' }}>
             {titulo}
           </h1>
           <p style={{ fontSize: '14px', color: '#6b7280', margin: 0 }}>{subtitulo}</p>
@@ -99,21 +101,22 @@ const Reservaciones = () => {
       </div>
 
       {/* Filtros + Buscador */}
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: '12px', marginBottom: '20px', alignItems: isMobile ? 'stretch' : 'center' }}>
         <div style={{
           display: 'flex', gap: '4px', background: 'white',
           borderRadius: '10px', border: '1px solid #e5e7eb', padding: '4px',
+          flexWrap: 'wrap',
         }}>
           {FILTROS.map((f) => (
             <button
               key={f}
               onClick={() => setFiltro(f)}
               style={{
-                padding: '8px 20px', borderRadius: '7px', border: 'none',
+                padding: isMobile ? '6px 12px' : '8px 20px', borderRadius: '7px', border: 'none',
                 background: filtro === f ? '#c0392b' : 'transparent',
                 color: filtro === f ? 'white' : '#6b7280',
                 fontWeight: filtro === f ? '600' : '400',
-                fontSize: '14px', cursor: 'pointer',
+                fontSize: isMobile ? '13px' : '14px', cursor: 'pointer',
                 transition: 'all 0.15s',
               }}
             >
@@ -122,7 +125,7 @@ const Reservaciones = () => {
           ))}
         </div>
 
-        <div style={{ position: 'relative', flex: 1, minWidth: '220px', maxWidth: '360px' }}>
+        <div style={{ position: 'relative', flex: 1, minWidth: isMobile ? 'auto' : '220px' }}>
           <svg
             width="15" height="15" viewBox="0 0 24 24" fill="none"
             stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
@@ -165,11 +168,7 @@ const Reservaciones = () => {
           {error}
         </div>
       )}
-
-      {cargando && (
-        <p style={{ color: '#6b7280', fontSize: '14px' }}>Cargando reservaciones...</p>
-      )}
-
+      {cargando && <p style={{ color: '#6b7280', fontSize: '14px' }}>Cargando reservaciones...</p>}
       {!cargando && reservacionesFiltradas.length === 0 && (
         <div style={{
           background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb',
@@ -182,7 +181,6 @@ const Reservaciones = () => {
           </p>
         </div>
       )}
-
       {!cargando && reservacionesFiltradas.map((r) => (
         <ReservacionCard key={r.id} reservacion={r} onCancelar={cancelar} onModificar={modificar} />
       ))}
@@ -190,23 +188,16 @@ const Reservaciones = () => {
       {/* Toast */}
       {toast && (
         <div style={{
-          position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)',
+          position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
           background: toast.tipo === 'exito' ? '#16a34a' : '#d92a00',
           color: 'white', borderRadius: '12px', padding: '13px 22px',
-          fontSize: '14px', fontWeight: '600',
-          boxShadow: '0 8px 28px rgba(0,0,0,0.2)',
-          zIndex: 3000, display: 'flex', alignItems: 'center', gap: '10px',
-          whiteSpace: 'nowrap',
+          fontSize: '14px', fontWeight: '600', boxShadow: '0 8px 28px rgba(0,0,0,0.2)',
+          zIndex: 3000, display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap',
         }}>
-          {toast.tipo === 'exito' ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-          )}
+          {toast.tipo === 'exito'
+            ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          }
           {toast.mensaje}
         </div>
       )}
@@ -214,43 +205,17 @@ const Reservaciones = () => {
       {/* Modal de confirmación */}
       {confirmacion && (
         <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(17, 3, 42, 0.55)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
-          }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(17, 3, 42, 0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}
           onClick={e => { if (e.target === e.currentTarget) setConfirmacion(null); }}
         >
-          <div style={{
-            background: 'white', borderRadius: '20px', padding: '32px',
-            width: '100%', maxWidth: '420px',
-            boxShadow: '0 16px 48px rgba(17,3,42,0.22)',
-            fontFamily: '"Inter", sans-serif',
-          }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#11032a', margin: '0 0 12px' }}>
-              Cancelar reservación
-            </h2>
-            <p style={{ color: '#4b3f6b', fontSize: '14px', margin: '0 0 28px', lineHeight: '1.6' }}>
-              {confirmacion.mensaje}
-            </p>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '32px', width: '100%', maxWidth: '420px', boxShadow: '0 16px 48px rgba(17,3,42,0.22)', fontFamily: '"Inter", sans-serif' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#11032a', margin: '0 0 12px' }}>Cancelar reservación</h2>
+            <p style={{ color: '#4b3f6b', fontSize: '14px', margin: '0 0 28px', lineHeight: '1.6' }}>{confirmacion.mensaje}</p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button
-                onClick={() => setConfirmacion(null)}
-                style={{
-                  padding: '10px 20px', border: '1px solid #e0dce8', borderRadius: '10px',
-                  background: 'white', color: '#6b5f82', fontWeight: '600', fontSize: '14px', cursor: 'pointer',
-                }}
-              >
+              <button onClick={() => setConfirmacion(null)} style={{ padding: '10px 20px', border: '1px solid #e0dce8', borderRadius: '10px', background: 'white', color: '#6b5f82', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
                 Volver
               </button>
-              <button
-                onClick={() => { confirmacion.onConfirmar(); setConfirmacion(null); }}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  background: '#d92a00', color: 'white', border: 'none',
-                  borderRadius: '10px', padding: '10px 20px',
-                  fontWeight: '600', fontSize: '14px', cursor: 'pointer',
-                }}
-              >
+              <button onClick={() => { confirmacion.onConfirmar(); setConfirmacion(null); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#d92a00', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 20px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
                 Sí, cancelar
               </button>
             </div>

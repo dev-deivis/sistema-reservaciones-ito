@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
@@ -13,6 +13,7 @@ import GestionEspacios from './pages/GestionEspacios';
 import GestionUsuarios from './pages/GestionUsuarios';
 import Perfil from './pages/Perfil';
 import NotFound from './pages/NotFound';
+import useWindowSize from './hooks/useWindowSize';
 
 const ProtectedRoute = ({ children }) => {
   const { usuario } = useAuth();
@@ -28,17 +29,43 @@ const AdminRoute = ({ children }) => {
 
 const AppRoutes = () => {
   const { usuario } = useAuth();
+  const { width } = useWindowSize();
+  const isMobile = width < 768;
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+
+  useEffect(() => {
+    if (!isMobile) setSidebarOpen(true);
+  }, [isMobile]);
+
+  const toggleSidebar = () => setSidebarOpen(prev => !prev);
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
     <Router>
       {usuario ? (
         <div style={{ display: 'flex', minHeight: '100vh', background: '#f8f9fb' }}>
-          {/* Sidebar fijo izquierda */}
-          <Sidebar />
+          <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} isMobile={isMobile} />
 
-          {/* Todo lo de la derecha: topbar + contenido */}
-          <div style={{ marginLeft: '320px', flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-            <Layout>
+          {/* Overlay oscuro en móvil cuando el drawer está abierto */}
+          {isMobile && sidebarOpen && (
+            <div
+              onClick={closeSidebar}
+              style={{
+                position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+                zIndex: 99,
+              }}
+            />
+          )}
+
+          <div style={{
+            marginLeft: isMobile ? 0 : '320px',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100vh',
+            minWidth: 0,
+          }}>
+            <Layout onToggleSidebar={toggleSidebar} isMobile={isMobile}>
               <Routes>
                 <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/espacios" element={<ProtectedRoute><Espacios /></ProtectedRoute>} />

@@ -330,13 +330,41 @@
   color: #d32f2f;
 }
 
-@media (max-width: 800px) {
+@media (max-width: 767px) {
   .login-container {
     flex-direction: column;
   }
-  .login-left, .login-right {
+  .login-left {
+    display: none;
+  }
+  .login-right {
+    flex: 1;
+    min-height: 100vh;
+    padding: 1.5rem 1rem;
+    justify-content: center;
+  }
+  .login-card {
+    padding: 1.8rem 1.2rem;
+    max-width: 100%;
+  }
+  .login-footer {
+    position: static;
+    margin-top: 1.5rem;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 900px) {
+  .login-container {
+    flex-direction: column;
+  }
+  .login-left {
     flex: none;
-    min-height: 50vh;
+    min-height: 35vh;
+    padding: 2rem;
+  }
+  .login-right {
+    flex: 1;
+    padding: 2rem;
   }
   .login-footer {
     position: static;

@@ -72,8 +72,13 @@ const IconCalendarLogo = () => (
     <circle cx="9" cy="15" r="1" fill="white" /><circle cx="15" cy="15" r="1" fill="white" />
   </svg>
 );
+const IconClose = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+  </svg>
+);
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose, isMobile }) => {
   const { usuario, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -114,47 +119,66 @@ const Sidebar = () => {
     ] : []),
   ];
 
+  const sidebarWidth = isMobile ? '260px' : '320px';
+
   return (
     <div style={{
-      width: '320px', minHeight: '100vh', background: '#11032a',
+      width: sidebarWidth, minHeight: '100vh', background: '#11032a',
       display: 'flex', flexDirection: 'column', position: 'fixed',
       top: 0, left: 0, bottom: 0, zIndex: 100,
-      borderRight: '1px solid rgba(255,255,255,0.05)'
+      borderRight: '1px solid rgba(255,255,255,0.05)',
+      transform: isMobile && !isOpen ? 'translateX(-100%)' : 'translateX(0)',
+      transition: 'transform 0.3s ease',
+      overflowY: 'auto',
     }}>
       {/* Logo Header */}
-      <div style={{ padding: '32px 24px 20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{
-          width: '56px', height: '56px', background: '#d92a00', borderRadius: '16px',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-          boxShadow: '0 4px 12px rgba(217, 42, 0, 0.4)'
-        }}>
-          <IconCalendarLogo />
+      <div style={{ padding: '24px 20px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+          <div style={{
+            width: '48px', height: '48px', background: '#d92a00', borderRadius: '14px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            boxShadow: '0 4px 12px rgba(217, 42, 0, 0.4)'
+          }}>
+            <IconCalendarLogo />
+          </div>
+          <div>
+            <p style={{ margin: 0, color: 'white', fontWeight: '800', fontSize: isMobile ? '18px' : '22px', letterSpacing: '-0.5px', fontFamily: '"Outfit", "Inter", sans-serif' }}>
+              ReservaITO
+            </p>
+            <p style={{ margin: 0, color: '#a29ab8', fontSize: '12px', marginTop: '2px', fontWeight: '500' }}>
+              Instituto Tecnológico
+            </p>
+          </div>
         </div>
-        <div>
-          <p style={{ margin: 0, color: 'white', fontWeight: '800', fontSize: '22px', letterSpacing: '-0.5px', fontFamily: '"Outfit", "Inter", sans-serif' }}>
-            ReservaITO
-          </p>
-          <p style={{ margin: 0, color: '#a29ab8', fontSize: '13px', marginTop: '2px', fontWeight: '500' }}>
-            Instituto Tecnológico
-          </p>
-        </div>
+        {isMobile && (
+          <button
+            onClick={onClose}
+            style={{
+              width: '32px', height: '32px', border: 'none', background: 'rgba(255,255,255,0.1)',
+              borderRadius: '8px', cursor: 'pointer', color: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            }}
+          >
+            <IconClose />
+          </button>
+        )}
       </div>
 
       {/* Badge Admin */}
-      <div style={{ padding: '0 24px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ padding: '0 20px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         <div style={{
           display: 'inline-flex', alignItems: 'center', gap: '8px',
           background: 'rgba(217, 42, 0, 0.15)', color: '#ef4444',
           border: '1px solid rgba(217, 42, 0, 0.3)',
-          borderRadius: '24px', padding: '6px 16px', fontSize: '14px', fontWeight: '600',
+          borderRadius: '24px', padding: '6px 14px', fontSize: '13px', fontWeight: '600',
         }}>
-          <IconShield /> 
+          <IconShield />
           {usuario?.rol === 'admin' ? 'Administrador' : 'Usuario'}
         </div>
       </div>
 
       {/* Navegación */}
-      <nav style={{ flex: 1, padding: '24px 20px', overflowY: 'auto' }}>
+      <nav style={{ flex: 1, padding: '20px 16px', overflowY: 'auto' }}>
         <p style={{
           fontSize: '12px', color: '#7c7790', fontWeight: '700',
           letterSpacing: '0.1em', textTransform: 'uppercase',
@@ -164,22 +188,26 @@ const Sidebar = () => {
         {navItems.map(({ to, label, icon, badge }) => {
           const active = isActive(to);
           return (
-            <Link key={to} to={to} style={{
-              display: 'flex', alignItems: 'center', gap: '16px',
-              padding: '12px 16px', borderRadius: '16px', marginBottom: '8px',
-              textDecoration: 'none',
-              color: active ? 'white' : '#c3bdd4',
-              background: active ? '#d92a00' : 'transparent',
-              fontWeight: active ? '600' : '500',
-              fontSize: '16px',
-              transition: 'all 0.2s ease',
-              fontFamily: '"Inter", sans-serif'
-            }}
-            onMouseOver={e => { if (!active) e.currentTarget.style.color = 'white'; }}
-            onMouseOut={e => { if (!active) e.currentTarget.style.color = '#c3bdd4'; }}
+            <Link
+              key={to}
+              to={to}
+              onClick={isMobile ? onClose : undefined}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '14px',
+                padding: '11px 14px', borderRadius: '14px', marginBottom: '6px',
+                textDecoration: 'none',
+                color: active ? 'white' : '#c3bdd4',
+                background: active ? '#d92a00' : 'transparent',
+                fontWeight: active ? '600' : '500',
+                fontSize: '15px',
+                transition: 'all 0.2s ease',
+                fontFamily: '"Inter", sans-serif'
+              }}
+              onMouseOver={e => { if (!active) e.currentTarget.style.color = 'white'; }}
+              onMouseOut={e => { if (!active) e.currentTarget.style.color = '#c3bdd4'; }}
             >
               <div style={{
-                width: '40px', height: '40px', borderRadius: '12px',
+                width: '38px', height: '38px', borderRadius: '10px',
                 background: active ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.04)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                 color: active ? 'white' : '#9c94b3',
@@ -201,28 +229,27 @@ const Sidebar = () => {
       </nav>
 
       {/* Usuario y Logout */}
-      <div style={{ padding: '0 24px 32px' }}>
-        
+      <div style={{ padding: '0 20px 28px' }}>
         {/* User Card → Mi perfil */}
-        <Link to="/perfil" style={{ textDecoration: 'none' }}>
+        <Link to="/perfil" onClick={isMobile ? onClose : undefined} style={{ textDecoration: 'none' }}>
           <div style={{
-            background: '#1d0f3c', borderRadius: '20px', padding: '16px',
-            display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px',
+            background: '#1d0f3c', borderRadius: '18px', padding: '14px',
+            display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px',
             cursor: 'pointer', transition: 'background 0.2s',
           }}
           onMouseOver={e => e.currentTarget.style.background = '#2a1a50'}
           onMouseOut={e => e.currentTarget.style.background = '#1d0f3c'}>
             <div style={{
-              width: '44px', height: '44px', borderRadius: '50%', background: '#d92a00',
+              width: '40px', height: '40px', borderRadius: '50%', background: '#d92a00',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: '800', fontSize: '16px', flexShrink: 0,
+              color: 'white', fontWeight: '800', fontSize: '15px', flexShrink: 0,
               boxShadow: '0 4px 10px rgba(217, 42, 0, 0.3)'
             }}>
               {iniciales}
             </div>
             <div style={{ overflow: 'hidden' }}>
               <p style={{
-                margin: 0, color: 'white', fontSize: '15px', fontWeight: '600',
+                margin: 0, color: 'white', fontSize: '14px', fontWeight: '600',
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                 fontFamily: '"Inter", sans-serif'
               }}>
@@ -237,10 +264,10 @@ const Sidebar = () => {
 
         {/* Logout Button */}
         <button onClick={handleLogout} style={{
-          display: 'flex', alignItems: 'center', gap: '14px',
-          width: '100%', padding: '14px 16px', borderRadius: '16px',
+          display: 'flex', alignItems: 'center', gap: '12px',
+          width: '100%', padding: '12px 14px', borderRadius: '14px',
           border: 'none', background: 'transparent',
-          color: '#c3bdd4', fontSize: '16px', fontWeight: '500', cursor: 'pointer',
+          color: '#c3bdd4', fontSize: '15px', fontWeight: '500', cursor: 'pointer',
           transition: 'all 0.2s ease', fontFamily: '"Inter", sans-serif'
         }}
         onMouseOver={e => {
@@ -252,7 +279,7 @@ const Sidebar = () => {
           e.currentTarget.style.background = 'transparent';
         }}>
           <div style={{
-            width: '40px', height: '40px', borderRadius: '12px',
+            width: '38px', height: '38px', borderRadius: '10px',
             background: 'rgba(255,255,255,0.04)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
             color: '#c3bdd4'

@@ -450,7 +450,8 @@ const GestionUsuarios = () => {
       {cargando ? (
         <p style={{ textAlign: 'center', color: '#9c94b3', padding: '40px' }}>Cargando usuarios...</p>
       ) : (
-        <table style={styles.tabla}>
+        <div style={{ overflowX: 'auto', borderRadius: '16px' }}>
+        <table style={{ ...styles.tabla, minWidth: '700px' }}>
           <thead>
             <tr>
               <th style={styles.th}>Nombre</th>
@@ -564,6 +565,7 @@ const GestionUsuarios = () => {
             )}
           </tbody>
         </table>
+        </div>
       )}
 
       {/* Toast */}

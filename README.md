@@ -367,6 +367,42 @@ Si no se define, el backend usa `http://localhost:3001` por defecto.
 
 ---
 
+## Despliegue con Docker
+
+Levanta todos los servicios (PostgreSQL, backend, notificaciones y frontend) con un solo comando:
+
+```bash
+# Construir imágenes y levantar en segundo plano
+docker compose up -d --build
+
+# Ver logs en tiempo real
+docker compose logs -f
+
+# Detener todos los servicios
+docker compose down
+
+# Detener y eliminar volúmenes (borra la base de datos)
+docker compose down -v
+```
+
+La primera vez que arranque, PostgreSQL ejecuta automáticamente `database/init.sql` y `database/seeds.sql`.
+
+| Servicio | URL |
+|----------|-----|
+| Frontend | http://localhost:5173 |
+| Backend | http://localhost:3000/api/health |
+| Notificaciones | http://localhost:3001/api/health |
+
+> Para el servidor del laboratorio, cambia en `docker-compose.yml` el puerto del frontend:
+> ```yaml
+> # línea actual
+> ports: "5173:80"
+> # cambiar a
+> ports: "8105:80"
+> ```
+
+---
+
 ## Equipo de desarrollo
 
 | Integrante |
