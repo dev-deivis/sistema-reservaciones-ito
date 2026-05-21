@@ -20,7 +20,7 @@ services:
     build: ./backend
     container_name: reservaciones-backend
     ports:
-      - "3000:3000"
+      - "3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -41,7 +41,7 @@ services:
     build: ./notificaciones-service
     container_name: reservaciones-notificaciones
     ports:
-      - "3001:3001"
+      - "3001"
     depends_on:
       postgres:
         condition: service_healthy
