@@ -26,6 +26,10 @@ const login = async (req, res, next) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
+    if (!usuario.activo) {
+      return res.status(401).json({ error: 'Tu cuenta está deshabilitada. Contacta al administrador.' });
+    }
+
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email, rol: usuario.rol },
       process.env.JWT_SECRET,

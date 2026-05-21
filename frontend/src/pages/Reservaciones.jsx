@@ -12,6 +12,7 @@ const Reservaciones = () => {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [filtro, setFiltro] = useState('Todas');
+  const [busqueda, setBusqueda] = useState('');
   const [confirmacion, setConfirmacion] = useState(null);
   const [toast, setToast] = useState(null);
 
@@ -47,11 +48,21 @@ const Reservaciones = () => {
   };
 
   const reservacionesFiltradas = reservaciones.filter((r) => {
-    if (filtro === 'Todas') return true;
-    if (filtro === 'Activas') return r.estado === 'pendiente' || r.estado === 'confirmada';
-    if (filtro === 'Canceladas') return r.estado === 'cancelada';
-    if (filtro === 'Completadas') return r.estado === 'completada';
-    return true;
+    const porEstado = filtro === 'Todas' ? true
+      : filtro === 'Activas' ? (r.estado === 'pendiente' || r.estado === 'confirmada')
+      : filtro === 'Canceladas' ? r.estado === 'cancelada'
+      : filtro === 'Completadas' ? r.estado === 'completada'
+      : true;
+
+    if (!porEstado) return false;
+
+    if (!busqueda.trim()) return true;
+    const q = busqueda.toLowerCase();
+    return (
+      r.espacio_nombre?.toLowerCase().includes(q) ||
+      r.motivo?.toLowerCase().includes(q) ||
+      r.usuario_nombre?.toLowerCase().includes(q)
+    );
   });
 
   const titulo = usuario?.rol === 'admin' ? 'Todas las Reservaciones' : 'Mis Reservaciones';
@@ -80,28 +91,65 @@ const Reservaciones = () => {
         </Link>
       </div>
 
-      {/* Filtros */}
-      <div style={{
-        display: 'flex', gap: '4px', background: 'white',
-        borderRadius: '10px', border: '1px solid #e5e7eb',
-        padding: '4px', marginBottom: '20px', width: 'fit-content',
-      }}>
-        {FILTROS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setFiltro(f)}
-            style={{
-              padding: '8px 20px', borderRadius: '7px', border: 'none',
-              background: filtro === f ? '#c0392b' : 'transparent',
-              color: filtro === f ? 'white' : '#6b7280',
-              fontWeight: filtro === f ? '600' : '400',
-              fontSize: '14px', cursor: 'pointer',
-              transition: 'all 0.15s',
-            }}
+      {/* Filtros + Buscador */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{
+          display: 'flex', gap: '4px', background: 'white',
+          borderRadius: '10px', border: '1px solid #e5e7eb', padding: '4px',
+        }}>
+          {FILTROS.map((f) => (
+            <button
+              key={f}
+              onClick={() => setFiltro(f)}
+              style={{
+                padding: '8px 20px', borderRadius: '7px', border: 'none',
+                background: filtro === f ? '#c0392b' : 'transparent',
+                color: filtro === f ? 'white' : '#6b7280',
+                fontWeight: filtro === f ? '600' : '400',
+                fontSize: '14px', cursor: 'pointer',
+                transition: 'all 0.15s',
+              }}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ position: 'relative', flex: 1, minWidth: '220px', maxWidth: '360px' }}>
+          <svg
+            width="15" height="15" viewBox="0 0 24 24" fill="none"
+            stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}
           >
-            {f}
-          </button>
-        ))}
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            placeholder={usuario?.rol === 'admin' ? 'Buscar por espacio, motivo o usuario...' : 'Buscar por espacio o motivo...'}
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            style={{
+              width: '100%', padding: '9px 14px 9px 36px',
+              borderRadius: '10px', border: '1px solid #e5e7eb',
+              fontSize: '14px', color: '#111827', background: 'white',
+              boxSizing: 'border-box', outline: 'none',
+            }}
+          />
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda('')}
+              style={{
+                position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                border: 'none', background: 'none', cursor: 'pointer',
+                color: '#9ca3af', display: 'flex', alignItems: 'center', padding: '2px',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Contenido */}
@@ -120,7 +168,11 @@ const Reservaciones = () => {
           background: 'white', borderRadius: '12px', border: '1px solid #e5e7eb',
           padding: '48px', textAlign: 'center', color: '#9ca3af',
         }}>
-          <p style={{ fontSize: '16px', margin: 0 }}>No hay reservaciones {filtro !== 'Todas' ? `en "${filtro}"` : ''}.</p>
+          <p style={{ fontSize: '16px', margin: 0 }}>
+            {busqueda
+              ? `No se encontraron resultados para "${busqueda}".`
+              : `No hay reservaciones${filtro !== 'Todas' ? ` en "${filtro}"` : ''}.`}
+          </p>
         </div>
       )}
 
