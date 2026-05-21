@@ -326,7 +326,7 @@ export default function FormularioReservacion({ onSuccess }) {
         {/* Motivo */}
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           <label style={{ fontSize: "14px", fontWeight: "600", color: "#111827" }}>
-            Motivo de la reservacion{" "}
+            Motivo de la reservación{" "}
             <span style={{ fontSize: "13px", fontWeight: "400", color: "#6b7280" }}>(opcional)</span>
           </label>
           <textarea

@@ -86,8 +86,13 @@ const actualizarEspacio = async (req, res, next) => {
     const { id } = req.params;
     const { nombre, capacidad, ubicacion, estado, tipo_espacio_id } = req.body;
 
-    if(capacidad < 0){
-      return res.status(400).json({ error: 'La capacidad no puede ser negativa' });
+    if (capacidad !== undefined && capacidad !== null) {
+      if (isNaN(capacidad) || capacidad < 1) {
+        return res.status(400).json({ error: 'La capacidad debe ser un número positivo' });
+      }
+      if (capacidad > 500) {
+        return res.status(400).json({ error: 'La capacidad no puede exceder 500' });
+      }
     }
 
 
