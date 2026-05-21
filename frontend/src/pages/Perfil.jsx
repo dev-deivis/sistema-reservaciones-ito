@@ -37,7 +37,7 @@ const inputStyle = {
 };
 
 export default function Perfil() {
-  const { usuario } = useAuth();
+  const { usuario, updateUsuario } = useAuth();
   const [form, setForm] = useState({ actual: '', nueva: '', confirmar: '' });
   const [error, setError] = useState('');
   const [exito, setExito] = useState('');
@@ -63,10 +63,11 @@ export default function Perfil() {
 
     setEnviando(true);
     try {
-      await api.patch(`/usuarios/${usuario.id}/password`, {
+      const res = await api.patch(`/usuarios/${usuario.id}/password`, {
         password_actual: form.actual,
         password_nueva: form.nueva,
       });
+      if (res.data?.usuario) updateUsuario(res.data.usuario);
       setExito('Contraseña actualizada correctamente');
       setForm({ actual: '', nueva: '', confirmar: '' });
     } catch (err) {
