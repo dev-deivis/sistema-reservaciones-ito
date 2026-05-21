@@ -52,7 +52,7 @@ const EspacioCard = ({ espacio, onReservar, onEliminar }) => {
   };
 
   const handleEditar = () => {
-    navigate('/gestion');
+    navigate(`/gestion?editar=${espacio.id}`);
   };
 
   return (

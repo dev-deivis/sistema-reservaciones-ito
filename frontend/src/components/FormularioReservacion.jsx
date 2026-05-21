@@ -43,6 +43,10 @@ const validarHorario = (fechaInicioStr, fechaFinStr) => {
     return "La reservación no puede durar más de 8 horas";
   }
 
+  if (inicio <= new Date()) {
+    return "No puedes hacer una reservación en una fecha u hora que ya pasó";
+  }
+
   return null;
 };
 
@@ -92,6 +96,7 @@ export default function FormularioReservacion({ onSuccess }) {
     return { espacio_id: espacioId, fecha: "", hora_inicio: "", hora_fin: "", motivo: "" };
   });
   const [errFecha, setErrFecha] = useState("");
+  const [errMotivo, setErrMotivo] = useState("");
   const [disponibilidad, setDisponibilidad] = useState(null);
   const [verificando, setVerificando] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -142,11 +147,26 @@ export default function FormularioReservacion({ onSuccess }) {
       setEspacioSeleccionado(esp || null);
     }
 
+    if (name === "motivo") {
+      if (value.length > 0 && value.length < 15) {
+        setErrMotivo("El motivo debe tener al menos 15 caracteres");
+      } else {
+        setErrMotivo("");
+      }
+    }
+
     setForm((p) => ({ ...p, [name]: value }));
   };
 
-  // Opciones de hora fin: todas las mayores a hora_inicio
-  const horasInicio = HORAS.slice(0, -1); // no puede empezar a las 20:00
+  // Opciones de hora inicio: excluir horas pasadas si la fecha es hoy
+  const ahora = new Date();
+  const horasInicio = HORAS.slice(0, -1).filter((h) => {
+    if (form.fecha !== hoy) return true;
+    const [hh, mm] = h.split(":").map(Number);
+    const slotTime = new Date(ahora);
+    slotTime.setHours(hh, mm, 0, 0);
+    return slotTime > ahora;
+  });
   const horasFin = form.hora_inicio ? HORAS.filter((h) => h > form.hora_inicio) : [];
 
   const verificarDisponibilidad = async () => {
@@ -158,6 +178,7 @@ export default function FormularioReservacion({ onSuccess }) {
     if (errFecha) { setError(errFecha); return; }
     const errHorario = validarHorario(getFechaInicio(), getFechaFin());
     if (errHorario) { setError(errHorario); return; }
+    if (errMotivo) { setError(errMotivo); return; }
     setVerificando(true);
     try {
       const res = await api.post("/disponibilidad/verificar", {
@@ -177,6 +198,7 @@ export default function FormularioReservacion({ onSuccess }) {
     setError("");
     const errHorario = validarHorario(getFechaInicio(), getFechaFin());
     if (errHorario) { setError(errHorario); return; }
+    if (errMotivo) { setError(errMotivo); return; }
     setEnviando(true);
     try {
       await api.post("/reservaciones", {
@@ -334,9 +356,27 @@ export default function FormularioReservacion({ onSuccess }) {
             value={form.motivo}
             onChange={handleChange}
             rows={3}
+            maxLength={50}
             placeholder="Describe el propósito de la reservación..."
-            style={{ ...inputStyle, resize: "vertical" }}
+            style={{ ...inputStyle, resize: "vertical", borderColor: errMotivo ? "#f87171" : "#d1d5db" }}
           />
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            {errMotivo ? (
+              <p style={{ margin: 0, fontSize: "13px", color: "#b91c1c", display: "flex", alignItems: "center", gap: "5px" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {errMotivo}
+              </p>
+            ) : (
+              <p style={{ margin: 0, fontSize: "12px", color: "#9ca3af" }}>
+                {form.motivo.length === 0 ? "Mínimo 15 caracteres si deseas agregar un motivo" : ""}
+              </p>
+            )}
+            <p style={{ margin: 0, fontSize: "12px", color: form.motivo.length >= 45 ? "#b45309" : "#9ca3af", flexShrink: 0 }}>
+              {form.motivo.length}/50
+            </p>
+          </div>
         </div>
 
         {/* Mensajes */}
