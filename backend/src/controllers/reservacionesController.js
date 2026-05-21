@@ -3,6 +3,36 @@ const axios = require('axios');
 
 const NOTIF_URL = process.env.NOTIF_SERVICE_URL || 'http://localhost:3001';
 
+const validarHorarioReservacion = (fecha_inicio, fecha_fin) => {
+  const inicio = new Date(fecha_inicio);
+  const fin = new Date(fecha_fin);
+
+  const dia = inicio.getDay();
+  if (dia === 0 || dia === 6) {
+    return { status: 400, error: 'Solo se pueden hacer reservaciones de lunes a viernes' };
+  }
+
+  const horaInicio = inicio.getHours();
+  if (horaInicio < 7 || horaInicio >= 20) {
+    return { status: 400, error: 'Las reservaciones solo pueden ser entre 7:00 AM y 8:00 PM' };
+  }
+
+  const horaFin = fin.getHours();
+  if (horaFin > 20) {
+    return { status: 400, error: 'La reservación no puede terminar después de las 8:00 PM' };
+  }
+
+  const diffMinutos = (fin - inicio) / (1000 * 60);
+  if (diffMinutos < 30) {
+    return { status: 400, error: 'La reservación debe tener una duración mínima de 30 minutos' };
+  }
+  if (diffMinutos > 480) {
+    return { status: 400, error: 'La reservación no puede durar más de 8 horas' };
+  }
+
+  return null;
+};
+
 const notificar = async (payload) => {
   try {
     await axios.post(`${NOTIF_URL}/api/notificaciones`, payload);
@@ -22,6 +52,11 @@ const crearReservacion = async (req, res, next) => {
 
     if (new Date(fecha_inicio) >= new Date(fecha_fin)) {
       return res.status(400).json({ error: 'fecha_inicio debe ser anterior a fecha_fin' });
+    }
+
+    const errHorario = validarHorarioReservacion(fecha_inicio, fecha_fin);
+    if (errHorario) {
+      return res.status(errHorario.status).json({ error: errHorario.error });
     }
 
     // Verificar conflictos
@@ -210,6 +245,11 @@ const modificarReservacion = async (req, res, next) => {
 
     if (new Date(nueva_inicio) >= new Date(nueva_fin)) {
       return res.status(400).json({ error: 'fecha_inicio debe ser anterior a fecha_fin' });
+    }
+
+    const errHorario = validarHorarioReservacion(nueva_inicio, nueva_fin);
+    if (errHorario) {
+      return res.status(errHorario.status).json({ error: errHorario.error });
     }
 
     const conflicto = await pool.query(`
