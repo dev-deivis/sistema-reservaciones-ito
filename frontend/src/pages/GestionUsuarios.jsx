@@ -260,7 +260,7 @@ const GestionUsuarios = () => {
   const [filtroRol, setFiltroRol] = useState('');
   const [filtroActivo, setFiltroActivo] = useState('');
   const [modalCrear, setModalCrear] = useState(false);
-  const [nuevoUsuario, setNuevoUsuario] = useState({ nombre: '', email: '', password: '', rol: 'usuario' });
+  const [nuevoUsuario, setNuevoUsuario] = useState({ nombre: '', email: '', password: '', rol: 'usuario', tipo: 'estudiante' });
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState('');
   const [usuarioEditando, setUsuarioEditando] = useState(null);
@@ -389,7 +389,7 @@ const GestionUsuarios = () => {
       const res = await api.post('/usuarios', nuevoUsuario);
       setUsuarios(prev => [res.data, ...prev]);
       setModalCrear(false);
-      setNuevoUsuario({ nombre: '', email: '', password: '', rol: 'usuario' });
+      setNuevoUsuario({ nombre: '', email: '', password: '', rol: 'usuario', tipo: 'estudiante' });
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear usuario');
     } finally {
@@ -832,6 +832,17 @@ const GestionUsuarios = () => {
                 >
                   <option value="usuario">Usuario</option>
                   <option value="admin">Administrador</option>
+                </select>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Tipo</label>
+                <select
+                  style={{ ...styles.input, cursor: 'pointer' }}
+                  value={nuevoUsuario.tipo}
+                  onChange={e => setNuevoUsuario(p => ({ ...p, tipo: e.target.value }))}
+                >
+                  <option value="estudiante">Estudiante</option>
+                  <option value="docente">Docente</option>
                 </select>
               </div>
 

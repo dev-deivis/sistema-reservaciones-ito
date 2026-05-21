@@ -1,24 +1,31 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
 const GestionEspacios = () => {
   const { usuario } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [espacios, setEspacios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [espacioDestacadoId, setEspacioDestacadoId] = useState(null);
   const filaDestacadaRef = useRef(null);
 
-  // Estados para modal de crear
   const [modalCrear, setModalCrear] = useState(false);
   const [nuevoEspacio, setNuevoEspacio] = useState({ nombre: '', capacidad: '', ubicacion: '', tipo_espacio_id: '' });
   const [tipos, setTipos] = useState([]);
 
-  // Estados para modal de editar
   const [modalEditar, setModalEditar] = useState(false);
   const [espacioEditando, setEspacioEditando] = useState(null);
+
+  const [confirmandoEliminar, setConfirmandoEliminar] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const mostrarToast = (tipo, mensaje) => {
+    setToast({ tipo, mensaje });
+    setTimeout(() => setToast(null), 3500);
+  };
 
   useEffect(() => {
     Promise.all([
@@ -47,21 +54,25 @@ const GestionEspacios = () => {
   }, [espacioDestacadoId]);
 
   const handleReservar = (espacio) => {
-    window.location.href = `/reservaciones/nueva?espacio=${espacio.id}`;
+    navigate(`/reservaciones/nueva?espacio=${espacio.id}`);
   };
 
-  // --- ELIMINAR ---
-  const handleEliminar = async (espacio) => {
-    if (!confirm(`¿Eliminar "${espacio.nombre}"? Esta acción no se puede deshacer.`)) return;
+  const handleEliminar = (espacio) => {
+    setConfirmandoEliminar(espacio);
+  };
+
+  const confirmarEliminar = async () => {
+    const espacio = confirmandoEliminar;
+    setConfirmandoEliminar(null);
     try {
       await api.delete(`/espacios/${espacio.id}`);
       setEspacios(prev => prev.filter(e => e.id !== espacio.id));
+      mostrarToast('exito', 'Espacio eliminado correctamente');
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al eliminar el espacio');
+      mostrarToast('error', err.response?.data?.error || 'Error al eliminar el espacio');
     }
   };
 
-  // --- CREAR ---
   const handleCrear = async () => {
     try {
       const { data } = await api.post('/espacios', {
@@ -71,12 +82,12 @@ const GestionEspacios = () => {
       setEspacios(prev => [...prev, data]);
       setModalCrear(false);
       setNuevoEspacio({ nombre: '', capacidad: '', ubicacion: '', tipo_espacio_id: '' });
+      mostrarToast('exito', 'Espacio creado correctamente');
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al crear el espacio');
+      mostrarToast('error', err.response?.data?.error || 'Error al crear el espacio');
     }
   };
 
-  // --- EDITAR ---
   const handleEditar = (espacio) => {
     setEspacioEditando({ ...espacio, tipo_espacio_id: espacio.tipo_espacio_id || '' });
     setModalEditar(true);
@@ -93,8 +104,9 @@ const GestionEspacios = () => {
       });
       setEspacios(prev => prev.map(e => e.id === data.id ? { ...data, tipo_nombre: e.tipo_nombre } : e));
       setModalEditar(false);
+      mostrarToast('exito', 'Espacio actualizado correctamente');
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al actualizar el espacio');
+      mostrarToast('error', err.response?.data?.error || 'Error al actualizar el espacio');
     }
   };
 
@@ -109,7 +121,6 @@ const GestionEspacios = () => {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem 1rem' }}>
 
-      {/* Encabezado */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ margin: 0, fontSize: '1.8rem', fontWeight: 'bold', color: '#1f2937' }}>Gestión de Espacios</h2>
@@ -126,7 +137,6 @@ const GestionEspacios = () => {
         </button>
       </div>
 
-      {/* Tabla */}
       <div style={{ backgroundColor: '#fff', border: '1px solid #eee', borderRadius: '12px', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead>
@@ -153,10 +163,7 @@ const GestionEspacios = () => {
                   ref={destacado ? filaDestacadaRef : null}
                   style={{
                     borderBottom: idx < espacios.length - 1 ? '1px solid #f0f0f0' : 'none',
-                    ...(destacado && {
-                      backgroundColor: '#fff7ed',
-                      borderLeft: '4px solid #c62828',
-                    }),
+                    ...(destacado && { backgroundColor: '#fff7ed', borderLeft: '4px solid #c62828' }),
                   }}
                 >
                   <td style={{ padding: '1rem 1.5rem', fontWeight: '500', color: '#1f2937', fontSize: '0.95rem' }}>{e.nombre}</td>
@@ -170,7 +177,7 @@ const GestionEspacios = () => {
                   </td>
                   <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
-                      <button onClick={() => handleReservar(e)} title="Reservar/Horarios" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f59e0b', padding: '0.2rem', display: 'flex', alignItems: 'center' }}>
+                      <button onClick={() => handleReservar(e)} title="Reservar" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f59e0b', padding: '0.2rem', display: 'flex', alignItems: 'center' }}>
                         <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                       </button>
                       <button onClick={() => handleEditar(e)} title="Editar espacio" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#c62828', padding: '0.2rem', display: 'flex', alignItems: 'center' }}>
@@ -200,18 +207,10 @@ const GestionEspacios = () => {
           <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '480px' }}>
             <h3 style={{ margin: '0 0 1.5rem 0' }}>Nuevo espacio</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <input placeholder="Nombre *" value={nuevoEspacio.nombre}
-                onChange={e => setNuevoEspacio({ ...nuevoEspacio, nombre: e.target.value })}
-                style={inputStyle} />
-              <input type="number" placeholder="Capacidad *" value={nuevoEspacio.capacidad}
-                onChange={e => setNuevoEspacio({ ...nuevoEspacio, capacidad: e.target.value })}
-                style={inputStyle} />
-              <input placeholder="Ubicación" value={nuevoEspacio.ubicacion}
-                onChange={e => setNuevoEspacio({ ...nuevoEspacio, ubicacion: e.target.value })}
-                style={inputStyle} />
-              <select value={nuevoEspacio.tipo_espacio_id}
-                onChange={e => setNuevoEspacio({ ...nuevoEspacio, tipo_espacio_id: e.target.value })}
-                style={inputStyle}>
+              <input placeholder="Nombre *" value={nuevoEspacio.nombre} onChange={e => setNuevoEspacio({ ...nuevoEspacio, nombre: e.target.value })} style={inputStyle} />
+              <input type="number" placeholder="Capacidad *" value={nuevoEspacio.capacidad} onChange={e => setNuevoEspacio({ ...nuevoEspacio, capacidad: e.target.value })} style={inputStyle} />
+              <input placeholder="Ubicación" value={nuevoEspacio.ubicacion} onChange={e => setNuevoEspacio({ ...nuevoEspacio, ubicacion: e.target.value })} style={inputStyle} />
+              <select value={nuevoEspacio.tipo_espacio_id} onChange={e => setNuevoEspacio({ ...nuevoEspacio, tipo_espacio_id: e.target.value })} style={inputStyle}>
                 <option value="">Tipo de espacio *</option>
                 {tipos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
               </select>
@@ -230,25 +229,15 @@ const GestionEspacios = () => {
           <div style={{ backgroundColor: 'white', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '480px' }}>
             <h3 style={{ margin: '0 0 1.5rem 0' }}>Editar espacio</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <input placeholder="Nombre *" value={espacioEditando.nombre}
-                onChange={e => setEspacioEditando({ ...espacioEditando, nombre: e.target.value })}
-                style={inputStyle} />
-              <input type="number" placeholder="Capacidad *" value={espacioEditando.capacidad}
-                onChange={e => setEspacioEditando({ ...espacioEditando, capacidad: e.target.value })}
-                style={inputStyle} />
-              <input placeholder="Ubicación" value={espacioEditando.ubicacion}
-                onChange={e => setEspacioEditando({ ...espacioEditando, ubicacion: e.target.value })}
-                style={inputStyle} />
-              <select value={espacioEditando.estado}
-                onChange={e => setEspacioEditando({ ...espacioEditando, estado: e.target.value })}
-                style={inputStyle}>
+              <input placeholder="Nombre *" value={espacioEditando.nombre} onChange={e => setEspacioEditando({ ...espacioEditando, nombre: e.target.value })} style={inputStyle} />
+              <input type="number" placeholder="Capacidad *" value={espacioEditando.capacidad} onChange={e => setEspacioEditando({ ...espacioEditando, capacidad: e.target.value })} style={inputStyle} />
+              <input placeholder="Ubicación" value={espacioEditando.ubicacion} onChange={e => setEspacioEditando({ ...espacioEditando, ubicacion: e.target.value })} style={inputStyle} />
+              <select value={espacioEditando.estado} onChange={e => setEspacioEditando({ ...espacioEditando, estado: e.target.value })} style={inputStyle}>
                 <option value="disponible">Disponible</option>
                 <option value="mantenimiento">Mantenimiento</option>
                 <option value="inactivo">Inactivo</option>
               </select>
-              <select value={espacioEditando.tipo_espacio_id}
-                onChange={e => setEspacioEditando({ ...espacioEditando, tipo_espacio_id: e.target.value })}
-                style={inputStyle}>
+              <select value={espacioEditando.tipo_espacio_id} onChange={e => setEspacioEditando({ ...espacioEditando, tipo_espacio_id: e.target.value })} style={inputStyle}>
                 <option value="">Tipo de espacio *</option>
                 {tipos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
               </select>
@@ -258,6 +247,46 @@ const GestionEspacios = () => {
               <button onClick={handleGuardarEdicion} style={{ padding: '0.7rem 1.5rem', border: 'none', borderRadius: '8px', cursor: 'pointer', background: '#c62828', color: 'white', fontWeight: '600' }}>Guardar cambios</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Modal confirmación eliminar */}
+      {confirmandoEliminar && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(17,3,42,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}
+          onClick={e => { if (e.target === e.currentTarget) setConfirmandoEliminar(null); }}
+        >
+          <div style={{ background: 'white', borderRadius: '20px', padding: '32px', width: '100%', maxWidth: '420px', boxShadow: '0 16px 48px rgba(17,3,42,0.22)', fontFamily: '"Inter", sans-serif' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#11032a', margin: '0 0 12px' }}>Eliminar espacio</h2>
+            <p style={{ color: '#4b3f6b', fontSize: '14px', margin: '0 0 28px', lineHeight: '1.6' }}>
+              ¿Eliminar <strong>"{confirmandoEliminar.nombre}"</strong>? Esta acción no se puede deshacer.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={() => setConfirmandoEliminar(null)} style={{ padding: '10px 20px', border: '1px solid #e0dce8', borderRadius: '10px', background: 'white', color: '#6b5f82', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
+                Cancelar
+              </button>
+              <button onClick={confirmarEliminar} style={{ background: '#d92a00', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 20px', fontWeight: '600', fontSize: '14px', cursor: 'pointer' }}>
+                Sí, eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: '32px', left: '50%', transform: 'translateX(-50%)',
+          background: toast.tipo === 'exito' ? '#16a34a' : '#d92a00',
+          color: 'white', borderRadius: '12px', padding: '13px 22px',
+          fontSize: '14px', fontWeight: '600', boxShadow: '0 8px 28px rgba(0,0,0,0.2)',
+          zIndex: 3000, display: 'flex', alignItems: 'center', gap: '10px', whiteSpace: 'nowrap',
+        }}>
+          {toast.tipo === 'exito'
+            ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          }
+          {toast.mensaje}
         </div>
       )}
 
