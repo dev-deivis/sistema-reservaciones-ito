@@ -19,6 +19,20 @@ graph TD
 4. **Historial**: Se inserta un registro en el historial de cambios indicando la creación.
 5. **Notificación**: Se genera una notificación para el usuario confirmando la creación.
 
+## Restricciones de horario
+
+Las siguientes reglas se validan tanto en el backend (400 Bad Request) como en el frontend antes de enviar la petición.
+
+| # | Regla | Error devuelto |
+|---|-------|----------------|
+| 1 | **Día de la semana** — Solo lunes a viernes (`getDay()` ≠ 0 ni 6) | `"Solo se pueden hacer reservaciones de lunes a viernes"` |
+| 2 | **Hora de inicio** — Entre las 7:00 y las 19:59 (`getHours()` ≥ 7 y < 20) | `"Las reservaciones solo pueden ser entre 7:00 AM y 8:00 PM"` |
+| 3 | **Hora de fin** — No después de las 20:00 (`getHours()` ≤ 20) | `"La reservación no puede terminar después de las 8:00 PM"` |
+| 4 | **Duración mínima** — Al menos 30 minutos de diferencia entre inicio y fin | `"La reservación debe tener una duración mínima de 30 minutos"` |
+| 5 | **Duración máxima** — No más de 480 minutos (8 horas) | `"La reservación no puede durar más de 8 horas"` |
+
+Estas validaciones se aplican al **crear** (`POST /api/reservaciones`) y al **modificar** (`PUT /api/reservaciones/:id`) una reservación, y se ejecutan antes de consultar disponibilidad en la base de datos.
+
 ## Endpoints
 
 ### 1. Obtener todas las reservaciones (Admin)

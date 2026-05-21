@@ -15,6 +15,36 @@ const formatHora = (h) => {
   return `${h12}:${String(mm).padStart(2, "0")} ${periodo}`;
 };
 
+const validarHorario = (fechaInicioStr, fechaFinStr) => {
+  const inicio = new Date(fechaInicioStr);
+  const fin = new Date(fechaFinStr);
+
+  const dia = inicio.getDay();
+  if (dia === 0 || dia === 6) {
+    return "Solo se pueden hacer reservaciones de lunes a viernes";
+  }
+
+  const horaInicio = inicio.getHours();
+  if (horaInicio < 7 || horaInicio >= 20) {
+    return "Las reservaciones solo pueden ser entre 7:00 AM y 8:00 PM";
+  }
+
+  const horaFin = fin.getHours();
+  if (horaFin > 20) {
+    return "La reservación no puede terminar después de las 8:00 PM";
+  }
+
+  const diffMinutos = (fin - inicio) / (1000 * 60);
+  if (diffMinutos < 30) {
+    return "La reservación debe tener una duración mínima de 30 minutos";
+  }
+  if (diffMinutos > 480) {
+    return "La reservación no puede durar más de 8 horas";
+  }
+
+  return null;
+};
+
 const esFinDeSemana = (fechaStr) => {
   if (!fechaStr) return false;
   const [y, m, d] = fechaStr.split("-").map(Number);
@@ -126,6 +156,8 @@ export default function FormularioReservacion({ onSuccess }) {
       return;
     }
     if (errFecha) { setError(errFecha); return; }
+    const errHorario = validarHorario(getFechaInicio(), getFechaFin());
+    if (errHorario) { setError(errHorario); return; }
     setVerificando(true);
     try {
       const res = await api.post("/disponibilidad/verificar", {
@@ -143,6 +175,8 @@ export default function FormularioReservacion({ onSuccess }) {
 
   const handleSubmit = async () => {
     setError("");
+    const errHorario = validarHorario(getFechaInicio(), getFechaFin());
+    if (errHorario) { setError(errHorario); return; }
     setEnviando(true);
     try {
       await api.post("/reservaciones", {
@@ -435,6 +469,8 @@ export default function FormularioReservacion({ onSuccess }) {
             <li>Solo días hábiles: lunes a viernes</li>
             <li>Horario permitido: 7:00 AM – 8:00 PM</li>
             <li>La hora de fin debe ser posterior a la de inicio</li>
+            <li>Duración mínima: 30 minutos</li>
+            <li>Duración máxima: 8 horas</li>
           </ul>
         </div>
       </div>
