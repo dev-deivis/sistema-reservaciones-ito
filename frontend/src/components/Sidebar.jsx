@@ -200,27 +200,37 @@ const Sidebar = () => {
       {/* Usuario y Logout */}
       <div style={{ padding: '0 24px 32px' }}>
         
-        {/* User Card */}
-        <div style={{ 
-          background: '#1d0f3c', borderRadius: '20px', padding: '16px',
-          display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px'
-        }}>
+        {/* User Card → Mi perfil */}
+        <Link to="/perfil" style={{ textDecoration: 'none' }}>
           <div style={{
-            width: '44px', height: '44px', borderRadius: '50%', background: '#d92a00',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: 'white', fontWeight: '800', fontSize: '16px', flexShrink: 0,
-            boxShadow: '0 4px 10px rgba(217, 42, 0, 0.3)'
-          }}>
-            {iniciales}
+            background: '#1d0f3c', borderRadius: '20px', padding: '16px',
+            display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px',
+            cursor: 'pointer', transition: 'background 0.2s',
+          }}
+          onMouseOver={e => e.currentTarget.style.background = '#2a1a50'}
+          onMouseOut={e => e.currentTarget.style.background = '#1d0f3c'}>
+            <div style={{
+              width: '44px', height: '44px', borderRadius: '50%', background: '#d92a00',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontWeight: '800', fontSize: '16px', flexShrink: 0,
+              boxShadow: '0 4px 10px rgba(217, 42, 0, 0.3)'
+            }}>
+              {iniciales}
+            </div>
+            <div style={{ overflow: 'hidden' }}>
+              <p style={{
+                margin: 0, color: 'white', fontSize: '15px', fontWeight: '600',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                fontFamily: '"Inter", sans-serif'
+              }}>
+                {usuario?.nombre || 'Usuario'}
+              </p>
+              <p style={{ margin: 0, color: '#a29ab8', fontSize: '12px', marginTop: '2px' }}>
+                Mi perfil
+              </p>
+            </div>
           </div>
-          <p style={{ 
-            margin: 0, color: 'white', fontSize: '15px', fontWeight: '600', 
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            fontFamily: '"Inter", sans-serif'
-          }}>
-            {usuario?.nombre || 'Maria Lopez Hernand...'}
-          </p>
-        </div>
+        </Link>
 
         {/* Logout Button */}
         <button onClick={handleLogout} style={{

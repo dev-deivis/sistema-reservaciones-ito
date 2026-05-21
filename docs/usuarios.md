@@ -1,6 +1,18 @@
 # Módulo de Gestión de Usuarios
 
-Todos los endpoints requieren autenticación de administrador (`Authorization: Bearer <token>`).
+Todos los endpoints requieren autenticación (`Authorization: Bearer <token>`). La mayoría están restringidos a administradores; el endpoint de cambio de contraseña es accesible por cualquier usuario autenticado sobre su propia cuenta.
+
+## Resumen de endpoints
+
+| Método | Ruta | Middleware | Descripción |
+|--------|------|------------|-------------|
+| `GET` | `/api/usuarios` | `authAdmin` | Listar usuarios con filtros |
+| `GET` | `/api/usuarios/:id` | `authAdmin` | Detalle de un usuario |
+| `POST` | `/api/usuarios` | `authAdmin` | Crear usuario |
+| `PUT` | `/api/usuarios/:id` | `authAdmin` | Editar nombre, email, rol |
+| `PATCH` | `/api/usuarios/:id/activo` | `authAdmin` | Activar / desactivar cuenta |
+| `PATCH` | `/api/usuarios/:id/password` | `auth` | Cambiar contraseña (propio usuario o admin) |
+| `DELETE` | `/api/usuarios/:id` | `authAdmin` | Eliminar usuario |
 
 ---
 
@@ -99,7 +111,7 @@ Crea un nuevo usuario. La contraseña se hashea con bcrypt (10 rounds).
 
 ## PUT /api/usuarios/:id
 
-Actualiza nombre, email o rol. **No permite cambiar la contraseña.**
+Actualiza nombre, email o rol. Para cambiar la contraseña usar `PATCH /api/usuarios/:id/password`.
 
 **Body (todos los campos son opcionales)**
 ```json
@@ -146,6 +158,51 @@ Alterna el campo `activo` del usuario (toggle). Si estaba en `true` lo pone `fal
 
 ---
 
+## PATCH /api/usuarios/:id/password
+
+Cambia la contraseña de un usuario.
+
+**Autorización:** El propio usuario O un administrador.
+- Middleware: `auth` — cualquier usuario autenticado llega al endpoint; la validación de permisos se hace en el controlador.
+- Si `req.usuario.id !== id` y `req.usuario.rol !== 'admin'` → `403`.
+
+**Interfaces de usuario que consumen este endpoint:**
+- **Usuario regular** → página `/perfil` (accesible desde la tarjeta de usuario en el Sidebar). Requiere los tres campos: `password_actual`, `password_nueva` y confirmación.
+- **Admin** → modal "Cambiar contraseña" en `/usuarios` (ícono de candado por fila). Solo requiere `password_nueva` y confirmación; no necesita la contraseña actual del otro usuario.
+
+**Body — usuario cambiando su propia contraseña**
+```json
+{
+  "password_actual": "contraseñaAnterior",
+  "password_nueva": "nuevaContraseña123"
+}
+```
+
+**Body — admin cambiando la contraseña de otro usuario**
+```json
+{
+  "password_nueva": "nuevaContraseña123"
+}
+```
+
+**Validaciones**
+| Condición | Respuesta |
+|-----------|-----------|
+| `password_nueva` tiene menos de 8 caracteres | `400 { "error": "La nueva contraseña debe tener mínimo 8 caracteres" }` |
+| `password_actual` no enviado por el propio usuario | `400 { "error": "La contraseña actual es requerida" }` |
+| `password_actual` incorrecto | `400 { "error": "La contraseña actual es incorrecta" }` |
+| Usuario no encontrado | `404 { "error": "Usuario no encontrado" }` |
+| Sin permiso (ni propio ni admin) | `403 { "error": "No tienes permiso para cambiar esta contraseña" }` |
+
+**Ejemplo response (200)**
+```json
+{
+  "mensaje": "Contraseña actualizada correctamente"
+}
+```
+
+---
+
 ## DELETE /api/usuarios/:id
 
 Elimina un usuario de la base de datos.
@@ -175,8 +232,19 @@ Con la incorporación del campo `activo`, el flujo de autenticación ahora es:
 
 1. Verificar que el header `Authorization: Bearer <token>` exista.
 2. Verificar la firma JWT con `jwt.verify`.
-3. **Nuevo:** Consultar `SELECT activo FROM usuarios WHERE id = $1`.
+3. Consultar `SELECT activo FROM usuarios WHERE id = $1`.
    - Si el usuario no existe o `activo = false` → `401 Cuenta deshabilitada`.
 4. Adjuntar `req.usuario = decoded` y continuar con `next()`.
 
 Esto garantiza que desactivar una cuenta tiene efecto inmediato, sin necesidad de revocar tokens ni reiniciar el servidor.
+
+---
+
+## Interfaces de usuario (frontend)
+
+| Página / Componente | Ruta | Quién la usa | Operaciones |
+|---------------------|------|--------------|-------------|
+| `GestionUsuarios.jsx` | `/usuarios` | Admin | Listar, crear, editar, activar/desactivar, cambiar rol, cambiar contraseña, eliminar |
+| `Perfil.jsx` | `/perfil` | Cualquier usuario autenticado | Ver datos de cuenta, cambiar contraseña propia |
+
+**Acceso a Mi perfil:** la tarjeta de usuario en la parte inferior del Sidebar es un enlace a `/perfil`.

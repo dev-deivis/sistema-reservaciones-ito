@@ -65,6 +65,12 @@ const IconAlerta = () => (
     <line x1="12" y1="16" x2="12.01" y2="16"/>
   </svg>
 );
+const IconLock = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+  </svg>
+);
 
 // ── Estilos reutilizables ────────────────────────────────
 const styles = {
@@ -257,6 +263,10 @@ const GestionUsuarios = () => {
   const [errorEditar, setErrorEditar] = useState('');
   const [confirmacion, setConfirmacion] = useState(null);
   const [toast, setToast] = useState(null);
+  const [modalPassword, setModalPassword] = useState(null);
+  const [formPassword, setFormPassword] = useState({ password_nueva: '', confirmar: '' });
+  const [errorPassword, setErrorPassword] = useState('');
+  const [guardandoPassword, setGuardandoPassword] = useState(false);
 
   const mostrarToast = (tipo, mensaje) => {
     setToast({ tipo, mensaje });
@@ -338,6 +348,32 @@ const GestionUsuarios = () => {
       setErrorEditar(err.response?.data?.error || 'Error al actualizar usuario');
     } finally {
       setGuardando(false);
+    }
+  };
+
+  const handleGuardarPassword = async (e) => {
+    e.preventDefault();
+    setErrorPassword('');
+    if (formPassword.password_nueva.length < 8) {
+      setErrorPassword('La nueva contraseña debe tener mínimo 8 caracteres');
+      return;
+    }
+    if (formPassword.password_nueva !== formPassword.confirmar) {
+      setErrorPassword('Las contraseñas no coinciden');
+      return;
+    }
+    setGuardandoPassword(true);
+    try {
+      await api.patch(`/usuarios/${modalPassword.id}/password`, {
+        password_nueva: formPassword.password_nueva,
+      });
+      setModalPassword(null);
+      setFormPassword({ password_nueva: '', confirmar: '' });
+      mostrarToast('exito', 'Contraseña actualizada correctamente');
+    } catch (err) {
+      setErrorPassword(err.response?.data?.error || 'Error al cambiar contraseña');
+    } finally {
+      setGuardandoPassword(false);
     }
   };
 
@@ -490,6 +526,19 @@ const GestionUsuarios = () => {
                         <IconShield />
                       </button>
 
+                      {/* Cambiar contraseña */}
+                      <button
+                        title="Cambiar contraseña"
+                        style={styles.btnIcono('gris')}
+                        onClick={() => {
+                          setModalPassword({ id: u.id, nombre: u.nombre });
+                          setFormPassword({ password_nueva: '', confirmar: '' });
+                          setErrorPassword('');
+                        }}
+                      >
+                        <IconLock />
+                      </button>
+
                       {/* Eliminar */}
                       <button
                         title="Eliminar usuario"
@@ -618,6 +667,76 @@ const GestionUsuarios = () => {
                 </button>
                 <button type="submit" style={{ ...styles.btnPrimario, opacity: guardando ? 0.7 : 1 }} disabled={guardando}>
                   {guardando ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal cambiar contraseña */}
+      {modalPassword && (
+        <div style={styles.overlay} onClick={e => { if (e.target === e.currentTarget) setModalPassword(null); }}>
+          <div style={{ ...styles.modal, maxWidth: '420px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={styles.modalTitulo}>Cambiar contraseña</h2>
+              <button
+                onClick={() => setModalPassword(null)}
+                style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#9c94b3' }}
+              >
+                <IconX />
+              </button>
+            </div>
+
+            <p style={{ fontSize: '13px', color: '#6b5f82', margin: '0 0 20px' }}>
+              Establecer nueva contraseña para <strong>{modalPassword.nombre}</strong>.
+            </p>
+
+            {errorPassword && (
+              <div style={{
+                background: 'rgba(217,42,0,0.08)', border: '1px solid rgba(217,42,0,0.2)',
+                borderRadius: '10px', padding: '10px 14px', marginBottom: '16px',
+                color: '#d92a00', fontSize: '13px',
+              }}>
+                {errorPassword}
+              </div>
+            )}
+
+            <form onSubmit={handleGuardarPassword}>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Nueva contraseña</label>
+                <input
+                  style={styles.input}
+                  type="password"
+                  required
+                  minLength={8}
+                  placeholder="Mínimo 8 caracteres"
+                  value={formPassword.password_nueva}
+                  onChange={e => setFormPassword(p => ({ ...p, password_nueva: e.target.value }))}
+                />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Confirmar contraseña</label>
+                <input
+                  style={styles.input}
+                  type="password"
+                  required
+                  placeholder="Repite la nueva contraseña"
+                  value={formPassword.confirmar}
+                  onChange={e => setFormPassword(p => ({ ...p, confirmar: e.target.value }))}
+                />
+              </div>
+
+              <div style={styles.modalBtns}>
+                <button type="button" style={styles.btnCancelar} onClick={() => setModalPassword(null)}>
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  style={{ ...styles.btnPrimario, opacity: guardandoPassword ? 0.7 : 1 }}
+                  disabled={guardandoPassword}
+                >
+                  {guardandoPassword ? 'Guardando...' : 'Guardar contraseña'}
                 </button>
               </div>
             </form>

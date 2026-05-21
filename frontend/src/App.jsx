@@ -11,6 +11,7 @@ import NuevaReservacion from './pages/NuevaReservacion';
 import Notificaciones from './pages/Notificaciones';
 import GestionEspacios from './pages/GestionEspacios';
 import GestionUsuarios from './pages/GestionUsuarios';
+import Perfil from './pages/Perfil';
 
 const ProtectedRoute = ({ children }) => {
   const { usuario } = useAuth();
@@ -45,6 +46,7 @@ const AppRoutes = () => {
                 <Route path="/notificaciones" element={<ProtectedRoute><Notificaciones /></ProtectedRoute>} />
                 <Route path="/gestion" element={<AdminRoute><GestionEspacios /></AdminRoute>} />
                 <Route path="/usuarios" element={<AdminRoute><GestionUsuarios /></AdminRoute>} />
+                <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
                 <Route path="/login" element={<Navigate to="/" />} />
               </Routes>
             </Layout>
