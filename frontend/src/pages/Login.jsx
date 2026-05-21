@@ -88,7 +88,7 @@ const Login = () => {
               <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
             </svg>
           </div>
-          
+
           <h2 className="welcome-title">Bienvenido</h2>
           <p className="welcome-subtitle">Ingresa tus credenciales para acceder al sistema</p>
 
@@ -140,7 +140,7 @@ const Login = () => {
         </div>
 
         <div className="login-footer">
-          <p>Tecnologico Nacional de Mexico<br />2024 Instituto Tecnologico de Oaxaca</p>
+          <p>Tecnologico Nacional de Mexico<br />2026 Instituto Tecnologico de Oaxaca</p>
         </div>
       </div>
     </div>
