@@ -21,6 +21,7 @@ const Notificaciones = () => {
   const marcarTodas = async () => {
     await api.patch('/notificaciones/leer-todas');
     cargar();
+    window.dispatchEvent(new CustomEvent('notificaciones-actualizadas'));
   };
 
   if (cargando) return <p style={{ padding: '2rem', textAlign: 'center' }}>Cargando...</p>;

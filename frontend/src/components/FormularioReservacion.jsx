@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../api/axios";
 
 // Slots de media hora de 7:00 a 20:00
@@ -83,14 +84,12 @@ const IconCheck = () => (
 );
 
 export default function FormularioReservacion({ onSuccess }) {
+  const [searchParams] = useSearchParams();
   const [espacios, setEspacios] = useState([]);
   const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
-  const [form, setForm] = useState({
-    espacio_id: "",
-    fecha: "",
-    hora_inicio: "",
-    hora_fin: "",
-    motivo: "",
+  const [form, setForm] = useState(() => {
+    const espacioId = new URLSearchParams(window.location.search).get("espacio") || "";
+    return { espacio_id: espacioId, fecha: "", hora_inicio: "", hora_fin: "", motivo: "" };
   });
   const [errFecha, setErrFecha] = useState("");
   const [disponibilidad, setDisponibilidad] = useState(null);
@@ -100,12 +99,13 @@ export default function FormularioReservacion({ onSuccess }) {
 
   useEffect(() => {
     api.get("/espacios").then((res) => setEspacios(res.data));
-
-    // Pre-seleccionar espacio si viene por query param
-    const params = new URLSearchParams(window.location.search);
-    const espacioId = params.get("espacio");
-    if (espacioId) setForm((p) => ({ ...p, espacio_id: espacioId }));
   }, []);
+
+  // Sincronizar espacio_id cuando cambia el query param (navegación con useNavigate)
+  useEffect(() => {
+    const espacioId = searchParams.get("espacio");
+    if (espacioId) setForm((p) => ({ ...p, espacio_id: espacioId }));
+  }, [searchParams]);
 
   // Sincronizar espacioSeleccionado cuando cambia espacios o espacio_id inicial
   useEffect(() => {

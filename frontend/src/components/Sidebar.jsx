@@ -79,13 +79,19 @@ const Sidebar = () => {
   const [noLeidas, setNoLeidas] = useState(0);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    fetch('/api/notificaciones/no-leidas', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then(r => r.json())
-      .then(data => setNoLeidas(data.count ?? data ?? 0))
-      .catch(() => setNoLeidas(0));
+    const fetchNoLeidas = () => {
+      const token = localStorage.getItem('token');
+      fetch('/api/notificaciones/no-leidas', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(r => r.json())
+        .then(data => setNoLeidas(data.count ?? data ?? 0))
+        .catch(() => setNoLeidas(0));
+    };
+
+    fetchNoLeidas();
+    window.addEventListener('notificaciones-actualizadas', fetchNoLeidas);
+    return () => window.removeEventListener('notificaciones-actualizadas', fetchNoLeidas);
   }, [location]);
 
   const handleLogout = () => { logout(); navigate('/login'); };
