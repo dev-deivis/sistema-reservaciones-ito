@@ -9,6 +9,7 @@ const reservacionesRoutes = require('./src/routes/reservaciones');
 const disponibilidadRoutes = require('./src/routes/disponibilidad');
 const notificacionesRoutes = require('./src/routes/notificaciones');
 const authRoutes = require('./src/routes/auth');
+const usuariosRoutes = require('./src/routes/usuarios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use('/api/espacios', espaciosRoutes);
 app.use('/api/reservaciones', reservacionesRoutes);
 app.use('/api/disponibilidad', disponibilidadRoutes);
 app.use('/api/notificaciones', notificacionesRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

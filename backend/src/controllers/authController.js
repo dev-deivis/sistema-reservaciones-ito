@@ -51,7 +51,16 @@ const registro = async (req, res, next) => {
     const { nombre, email, password } = req.body;
 
     if (!nombre || !email || !password) {
-      return res.status(400).json({ error: 'Nombre, email y contraseña requeridos' });
+      return res.status(400).json({ error: 'Nombre, email y contraseña son requeridos' });
+    }
+
+    if (!email.endsWith('@itoaxaca.edu.mx')) {
+      return res.status(400).json({ error: 'Solo se permite correo institucional (@itoaxaca.edu.mx)' });
+    }
+
+    const duplicado = await pool.query('SELECT id FROM usuarios WHERE email = $1', [email]);
+    if (duplicado.rows.length > 0) {
+      return res.status(409).json({ error: 'Ya existe una cuenta con ese correo' });
     }
 
     const salt = await bcrypt.genSalt(10);
