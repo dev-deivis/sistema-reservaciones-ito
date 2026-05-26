@@ -95,10 +95,23 @@ export default function FormularioReservacion({ onSuccess }) {
   const [espacios, setEspacios] = useState([]);
   const [espacioSeleccionado, setEspacioSeleccionado] = useState(null);
   const [form, setForm] = useState(() => {
-    const espacioId = new URLSearchParams(window.location.search).get("espacio") || "";
-    return { espacio_id: espacioId, fecha: "", hora_inicio: "", hora_fin: "", motivo: "" };
+    const p = new URLSearchParams(window.location.search);
+    return {
+      espacio_id:  p.get("espacio") || "",
+      fecha:       p.get("fecha")   || "",
+      hora_inicio: p.get("hi")      || "",
+      hora_fin:    p.get("hf")      || "",
+      motivo: "",
+    };
   });
-  const [errFecha, setErrFecha] = useState("");
+  const [errFecha, setErrFecha] = useState(() => {
+    // Validar fecha pre-llenada desde URL
+    const fecha = new URLSearchParams(window.location.search).get("fecha") || "";
+    if (!fecha) return "";
+    const [y, m, d] = fecha.split("-").map(Number);
+    const dia = new Date(y, m - 1, d).getDay();
+    return (dia === 0 || dia === 6) ? "Solo se permiten reservaciones de lunes a viernes." : "";
+  });
   const [errMotivo, setErrMotivo] = useState("");
   const [disponibilidad, setDisponibilidad] = useState(null);
   const [verificando, setVerificando] = useState(false);
@@ -109,10 +122,21 @@ export default function FormularioReservacion({ onSuccess }) {
     api.get("/espacios").then((res) => setEspacios(res.data));
   }, []);
 
-  // Sincronizar espacio_id cuando cambia el query param (navegación con useNavigate)
+  // Sincronizar todos los query params cuando cambia la URL (navegación con useNavigate)
   useEffect(() => {
-    const espacioId = searchParams.get("espacio");
-    if (espacioId) setForm((p) => ({ ...p, espacio_id: espacioId }));
+    const updates = {};
+    if (searchParams.get("espacio")) updates.espacio_id  = searchParams.get("espacio");
+    if (searchParams.get("fecha"))   updates.fecha        = searchParams.get("fecha");
+    if (searchParams.get("hi"))      updates.hora_inicio  = searchParams.get("hi");
+    if (searchParams.get("hf"))      updates.hora_fin     = searchParams.get("hf");
+    if (Object.keys(updates).length > 0) {
+      setForm(p => ({ ...p, ...updates }));
+      if (updates.fecha) {
+        const [y, m, d] = updates.fecha.split("-").map(Number);
+        const dia = new Date(y, m - 1, d).getDay();
+        setErrFecha((dia === 0 || dia === 6) ? "Solo se permiten reservaciones de lunes a viernes." : "");
+      }
+    }
   }, [searchParams]);
 
   // Sincronizar espacioSeleccionado cuando cambia espacios o espacio_id inicial
