@@ -83,10 +83,6 @@ const verificar = async (req, res, next) => {
       return res.status(400).json({ error: 'fecha_inicio debe ser anterior a fecha_fin' });
     }
 
-    if (new Date(fecha_inicio) <= new Date()) {
-      return res.status(400).json({ error: 'No se puede verificar disponibilidad en una fecha u hora que ya pasó' });
-    }
-
     const espacio = await pool.query(
       'SELECT id, nombre, estado FROM espacios WHERE id = $1',
       [espacioId]

@@ -190,8 +190,8 @@ export default function FormularioReservacion({ onSuccess }) {
         fecha_fin: getFechaFin(),
       });
       setDisponibilidad(res.data.disponible);
-    } catch {
-      setError("Error al verificar disponibilidad.");
+    } catch (err) {
+      setError(err.response?.data?.error || "Error al verificar disponibilidad.");
     } finally {
       setVerificando(false);
     }
