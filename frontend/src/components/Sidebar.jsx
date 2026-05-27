@@ -108,7 +108,7 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
     : 'U';
 
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: <IconDashboard /> },
+    { to: '/', label: 'Inicio', icon: <IconDashboard /> },
     { to: '/espacios', label: 'Espacios', icon: <IconEspacios /> },
     { to: '/reservaciones/nueva', label: 'Nueva Reservación', icon: <IconCalendarioPlus /> },
     { to: '/reservaciones', label: 'Mis Reservaciones', icon: <IconCalendarioList /> },
