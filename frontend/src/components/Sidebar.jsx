@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 
@@ -80,7 +80,6 @@ const IconClose = () => (
 
 const Sidebar = ({ isOpen, onClose, isMobile }) => {
   const { usuario, logout } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
   const [noLeidas, setNoLeidas] = useState(0);
 
@@ -96,7 +95,10 @@ const Sidebar = ({ isOpen, onClose, isMobile }) => {
     return () => window.removeEventListener('notificaciones-actualizadas', fetchNoLeidas);
   }, [location]);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
+  };
 
   const isActive = (path) => {
     if (path === '/reservaciones') return location.pathname === '/reservaciones';

@@ -121,11 +121,15 @@ const Layout = ({ children, onToggleSidebar, isMobile }) => {
                 )}
               </div>
             )}
-            <div style={{
-              width: '40px', height: '40px', borderRadius: '50%', background: '#c0392b',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: '700', fontSize: '15px', flexShrink: 0,
-            }}>
+            <div
+              onClick={() => navigate('/perfil')}
+              title="Mi perfil"
+              style={{
+                width: '40px', height: '40px', borderRadius: '50%', background: '#c0392b',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontWeight: '700', fontSize: '15px', flexShrink: 0,
+                cursor: 'pointer',
+              }}>
               {iniciales}
             </div>
           </div>
