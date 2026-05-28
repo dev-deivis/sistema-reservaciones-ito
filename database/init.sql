@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS tipo_espacio (
 -- Tabla de espacios
 CREATE TABLE IF NOT EXISTS espacios (
   id SERIAL PRIMARY KEY,
-  nombre VARCHAR(100) NOT NULL,
+  nombre VARCHAR(100) NOT NULL UNIQUE,
   capacidad INTEGER NOT NULL,
   ubicacion VARCHAR(200),
   estado VARCHAR(20) NOT NULL DEFAULT 'disponible' CHECK (estado IN ('disponible', 'mantenimiento', 'inactivo')),
